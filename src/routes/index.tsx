@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import emailjs from "@emailjs/browser";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   ArrowUpRight,
   Mail,
@@ -24,6 +25,9 @@ import {
   Flame,
   CheckCircle,
   GitCommit,
+  Home,
+  User,
+  Zap,
 } from "lucide-react";
 import profileImg from "@/assets/images/profile.jpg";
 import projRag from "@/assets/proj-rag.jpg";
@@ -94,7 +98,7 @@ const projects = [
     client: "Independent Project",
     role: "Lead GenAI Developer",
     img: projRag,
-    tags: ["RAG", "Ollama", "Flask", "Prompt Eng.", "SQLite"],
+    tags: ["Python", "Flask", "Ollama", "RAG"],
     desc: "Flask-based assistant using local LLMs (Ollama) to answer analytical business queries with structured data retrieval and prompt engineering.",
     problemStatement:
       "Non-technical stakeholders require fast access to database insights without writing complex SQL queries manually or relying on custom data analyst queues.",
@@ -106,7 +110,7 @@ const projects = [
       "The result set is aggregated, reformatted into natural language, and returned.",
     ],
     results:
-      "Reduced the time required to answer unstructured queries by 95% and achieved an 88% success rate in automatic SQL generation.",
+      "Retrieval-Augmented Generation, Business Query Answering, Real-time Insights, Structured Data Retrieval.",
     link: "https://github.com/DhivyadharshiniGopalakrishnan/rag-business-intelligence-assistant",
   },
   {
@@ -116,7 +120,7 @@ const projects = [
     client: "Cube AI Solutions",
     role: "AI / Agentic AI Intern",
     img: projAgents,
-    tags: ["Gemini API", "Multi-Agent", "Telegram Bot", "Automation"],
+    tags: ["Python", "Gemini API", "Telegram Bot"],
     desc: "A four-agent system — Planner, Writer, Hashtag, Scheduler — that automates 30-day content planning through interactive Telegram workflows.",
     problemStatement:
       "Social media marketing requires repetitive planner templates, copywriting iterations, and SEO tag parsing, creating bottlenecks in regular scheduling workflows.",
@@ -128,193 +132,139 @@ const projects = [
       "Scheduler Agent pushes ready-to-publish content to active platform hooks.",
     ],
     results:
-      "Automated content calendar drafting down to a 5-minute operation, reducing weekly content generation workloads by 70%.",
+      "Planner Agent, Writer Agent, Hashtag Agent, Scheduler Agent, Automated Content Planning.",
     link: "https://github.com/DhivyadharshiniGopalakrishnan/multi-agent-ai-social-media-manager",
-  },
-  {
-    id: "nlp",
-    year: "2025",
-    title: "NLP Spam Detection Engine",
-    client: "Cube AI Solutions",
-    role: "Machine Learning Intern",
-    img: projNlp,
-    tags: ["NLP", "Naive Bayes", "Python", "Scikit-Learn"],
-    desc: "ML-based spam detection pipeline combining NLP preprocessing and Naive Bayes classification for high-precision message filtering.",
-    problemStatement:
-      "High volumes of spam and fraudulent SMS degrade communications, necessitating a parser able to categorize texts in sub-15ms windows.",
-    architecture: [
-      "Incoming text messages are received via REST API endpoints.",
-      "NLP preprocessing executing tokenization, stop-word removal, and Porter stemming.",
-      "Processed tokens are vectorized using TF-IDF feature extraction.",
-      "Multinomial Naive Bayes classifier computes ham/spam probabilities.",
-      "Flags fraudulent messages and routes clean text to recipient apps.",
-    ],
-    results:
-      "Achieved a verified 98.6% classification accuracy on the SMS Spam Corpus with a sub-15ms inference latency.",
-    link: "https://github.com/DhivyadharshiniGopalakrishnan",
   },
 ];
 
 const techSkills = [
-  { name: "Python", category: "lang", level: "Expert" },
-  { name: "SQL", category: "lang", level: "Advanced" },
-  { name: "Machine Learning", category: "ml", level: "Advanced" },
-  { name: "NLP", category: "ml", level: "Advanced" },
-  { name: "Naive Bayes", category: "ml", level: "Expert" },
+  // Programming
+  { name: "Python", category: "programming", level: "Expert" },
+  { name: "SQL", category: "programming", level: "Advanced" },
+  // AI / ML
+  { name: "Machine Learning", category: "ai-ml", level: "Advanced" },
+  { name: "NLP", category: "ai-ml", level: "Advanced" },
+  { name: "Naive Bayes", category: "ai-ml", level: "Expert" },
+  { name: "Recommendation Systems", category: "ai-ml", level: "Intermediate" },
+  // GenAI / Agentic AI
   { name: "RAG", category: "genai", level: "Expert" },
-  { name: "LangChain", category: "genai", level: "Advanced" },
+  { name: "Multi-Agent Systems", category: "genai", level: "Expert" },
+  { name: "LLM Integration", category: "genai", level: "Advanced" },
   { name: "Gemini", category: "genai", level: "Expert" },
   { name: "Ollama", category: "genai", level: "Expert" },
-  { name: "Flask", category: "tool", level: "Advanced" },
-  { name: "Streamlit", category: "tool", level: "Expert" },
-  { name: "Git", category: "tool", level: "Advanced" },
-];
-
-const certifications = [
-  {
-    title: "Generative AI Fundamentals",
-    issuer: "Google Cloud",
-    date: "2025",
-    icon: Sparkles,
-    desc: "Demonstrates core proficiency in large language models, image generation models, and application developer tools on GCP.",
-  },
-  {
-    title: "LangChain for LLM Application Development",
-    issuer: "DeepLearning.AI",
-    date: "2025",
-    icon: Cpu,
-    desc: "Covers model interaction, prompt optimization, vector index integration, memory management, and agent pipelines.",
-  },
-  {
-    title: "Machine Learning with Python",
-    issuer: "Kaggle Course",
-    date: "2024",
-    icon: Code2,
-    desc: "Hands-on experience in regression, classification models, unsupervised clustering, and statistical data pipelines.",
-  },
-  {
-    title: "Natural Language Processing (NLP)",
-    issuer: "Mahendra Course Academy",
-    date: "2024",
-    icon: Terminal,
-    desc: "Deep dive into text preprocessing, word embeddings, LSTM network structures, and transformers.",
-  },
+  { name: "Prompt Engineering", category: "genai", level: "Expert" },
+  // Frameworks & Tools
+  { name: "Flask", category: "tools", level: "Advanced" },
+  { name: "Streamlit", category: "tools", level: "Expert" },
+  { name: "LangChain", category: "tools", level: "Advanced" },
+  { name: "Git", category: "tools", level: "Advanced" },
+  // APIs
+  { name: "REST APIs", category: "apis", level: "Advanced" },
+  { name: "Telegram Bot API", category: "apis", level: "Expert" },
+  { name: "Google Calendar API", category: "apis", level: "Intermediate" },
 ];
 
 const aiDomains = [
   {
     title: "Generative AI",
-    desc: "Building wrappers and workflows utilizing LLMs (Gemini, Llama) with advanced context engineering.",
+    desc: "Building wrappers and workflows utilizing LLMs (Gemini, Ollama) with context engineering.",
     icon: Sparkles,
     badge: "GenAI",
   },
   {
-    title: "Agentic AI",
-    desc: "Orchestrating multi-agent systems using planning frameworks, reflection loops, and automated tool calls.",
+    title: "Agentic AI Systems",
+    desc: "Orchestrating multi-agent systems using planner and scheduler agent constructs.",
     icon: Network,
-    badge: "Multi-Agent",
+    badge: "Agentic AI",
   },
   {
-    title: "RAG Systems",
-    desc: "Designing retrieval networks with semantic vector databases, chunking strategies, and hybrid search methods.",
+    title: "RAG Applications",
+    desc: "Designing retrieval-augmented generation systems with structured data retrieval.",
     icon: Database,
     badge: "RAG",
   },
   {
     title: "Natural Language Processing",
-    desc: "Implementing stemmers, tokenizers, custom classifiers, and intent parsing models for raw text analysis.",
+    desc: "Implementing text classification and spam filtering using NLP and Naive Bayes.",
     icon: Terminal,
     badge: "NLP",
   },
   {
     title: "Machine Learning",
-    desc: "Developing predictive models, regression analytics pipelines, and classification algorithms in Python.",
+    desc: "Developing predictive algorithms and analyzing retail datasets for sales insights.",
     icon: Cpu,
     badge: "ML",
-  },
-  {
-    title: "Prompt Engineering",
-    desc: "Crafting structured few-shot prompts, chain-of-thought triggers, and guardrails to optimize LLM performance.",
-    icon: Code2,
-    badge: "Prompting",
   },
 ];
 
 const awards = [
   {
-    title: "Winner — 24 Hour AI TeraHack Hackathon",
-    desc: "Developed a functional AI prototype resolving critical automation workflows under 24 hours.",
+    title: "Winner — 24 Hour AI TeraHack Hackathon 2025",
+    desc: "Developed a functional AI prototype resolving critical automation workflows.",
     year: "2025",
     icon: Trophy,
-    stat: "1st / 120+ Teams",
+    stat: "1st Place",
   },
   {
-    title: "Winner — JUST PROMPT IT (AI Prompt Engineering)",
-    desc: "Achieved perfect prompt accuracy and structural parsing in a competitive speed-prompting format.",
+    title: "Winner — JUST PROMPT IT",
+    desc: "AI Prompt Engineering Competition Winner.",
     year: "2025",
     icon: Flame,
-    stat: "Gold Medalist",
+    stat: "1st Place",
   },
   {
-    title: "Best Paper Award — ISTE (OpinionLens)",
-    desc: "Authored research paper on Sentiment Analysis & Opinion Mining (OpinionLens), recognized by ISTE.",
+    title: "Best Paper Award — ISTE OpinionLens",
+    desc: "Authored research paper on Sentiment Analysis & Opinion Mining (OpinionLens).",
     year: "2025",
     icon: FileText,
     stat: "National Level",
   },
 ];
 
+const certificates = [
+  {
+    name: "Internship Completion Certificate",
+    issuer: "Cube AI Solutions Pvt. Ltd.",
+    year: "2025",
+    fileUrl: "#",
+  },
+];
+
 const timelineEvents = [
   {
-    type: "internship",
+    type: "experience",
     title: "AI / Agentic AI Intern",
     company: "Cube AI Solutions Pvt. Ltd.",
-    location: "Bangalore, India (Remote)",
-    date: "Jul 2025 — Dec 2025",
-    desc: "Spearheaded research and engineering of multi-agent automation systems. Formulated NLP pipelines for high-precision text classification.",
+    location: "Bangalore, India",
+    date: "July 2025 – December 2025",
+    desc: "Built AI and Agentic AI systems for automation and decision support. Developed ML-based spam detection, implemented multi-agent manager systems, and built RAG assistants.",
     bulletPoints: [
-      "Built a multi-agent social media calendar automator using Gemini API & Telegram hooks.",
-      "Developed ML spam classifiers reducing fraudulent messaging volume by 98%.",
-      "Created independent Flask BI retrieval interfaces deploying local Ollama (Llama 3).",
+      "Built AI and Agentic AI systems for automation and decision support",
+      "Developed ML-based spam detection using NLP and Naive Bayes",
+      "Implemented multi-agent AI social media manager using Gemini and Telegram",
+      "Built Flask-based RAG assistant using local LLMs (Ollama)",
+      "Analyzed multi-year retail data to generate sales insights",
     ],
     icon: Briefcase,
   },
   {
-    type: "hackathon",
-    title: "Winner — JUST PROMPT IT",
-    company: "AI Prompt Engineering Challenge",
-    location: "National Level",
-    date: "2025",
-    desc: "Earned 1st place in speed meta-prompt formulation and parsing constraints, utilizing advanced prompt pattern paradigms.",
-    bulletPoints: [],
-    icon: Trophy,
-  },
-  {
-    type: "hackathon",
-    title: "Winner — 24 Hour AI TeraHack",
-    company: "TeraHack Hackathon Series",
-    location: "Regional Hack",
-    date: "2025",
-    desc: "Won overall first place among 100+ competing teams by assembling a functional RAG-driven knowledge crawler in 24 hours.",
-    bulletPoints: [],
-    icon: Trophy,
-  },
-  {
-    type: "academic",
-    title: "B.E. Computer Science & Engineering (AI & ML)",
+    type: "education",
+    title: "B.E Computer Science & Engineering (AI & ML)",
     company: "Mahendra Institute of Technology",
     location: "Tamil Nadu, India",
-    date: "2024 — 2028",
-    desc: "Undergraduate majoring in Artificial Intelligence & Machine Learning. Maintaining a stellar CGPA and serving as AI student lead.",
-    bulletPoints: [
-      "Current CGPA: 8.57 / 10.00",
-      "Student representative for MIT CSE AI & ML chapter.",
-    ],
+    date: "2024 – 2028",
+    desc: "Undergraduate majoring in Computer Science & Engineering (AI & ML). Current CGPA: 8.57.",
+    bulletPoints: ["Current CGPA: 8.57"],
     icon: GraduationCap,
   },
 ];
 
 function Portfolio() {
+  const isMobile = useIsMobile();
+  return isMobile ? <MobileAppLayout /> : <DesktopLayout />;
+}
+
+function DesktopLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
@@ -327,7 +277,7 @@ function Portfolio() {
       <FeaturedProjects />
       <TechStackGrid />
       <ExperienceTimeline />
-      <Certifications />
+      <Certificates />
       <AwardsShowcase />
       <GitHubDashboard />
       <Contact />
@@ -383,60 +333,63 @@ function Hero() {
             "radial-gradient(ellipse at 80% 20%, oklch(0.78 0.13 82 / 0.25), transparent 55%)",
         }}
       />
-      <div className="relative mx-auto max-w-7xl px-6 md:px-10 grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
-        <div className="col-span-12 md:col-span-7 order-2 md:order-1 reveal">
+      <div className="relative mx-auto max-w-7xl px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div className="col-span-12 lg:col-span-7 order-2 lg:order-1 reveal">
           <p className="text-xs tracking-[0.3em] uppercase text-gold mb-6">
-            AI / ML · GenAI · Agentic Systems
+            AI / ML • GENAI • AGENTIC AI SYSTEMS
           </p>
           <h1 className="font-display text-[clamp(2.75rem,8.5vw,7.5rem)] leading-[0.95] tracking-tight">
-            Engineering <em className="italic gold-gradient-text">intelligent</em>
+            Architecting
             <br />
-            systems that
+            <span className="gold-gradient-text">intelligent AI</span>
             <br />
-            <span className="italic">think with you.</span>
+            systems for
+            <br />
+            <em className="italic">real-world impact.</em>
           </h1>
-          <p className="mt-8 max-w-xl text-muted-foreground text-base md:text-lg leading-relaxed">
-            I'm <span className="text-foreground">Dhivyadharshini G</span> — an AI &amp; Machine
-            Learning undergraduate building <span className="text-foreground">RAG assistants</span>,{" "}
-            <span className="text-foreground">multi-agent workflows</span>, and production-ready
-            GenAI applications.
+          <p className="mt-6 text-xs md:text-sm font-semibold text-gold uppercase tracking-wider">
+            AI Engineer • Prompt Engineer • GenAI Developer • Agentic AI Systems Builder
+          </p>
+          <p className="mt-4 max-w-xl text-muted-foreground text-base md:text-lg leading-relaxed">
+            Building scalable AI applications, RAG pipelines, intelligent agents, and machine
+            learning solutions that transform data into actionable intelligence.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <a
               href="#work"
               className="group inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition"
             >
-              See selected work
+              View Projects
               <ArrowUpRight className="h-4 w-4 transition group-hover:rotate-45" />
             </a>
             <a
               href="#contact"
               className="text-sm text-muted-foreground hover:text-foreground transition underline underline-offset-4 decoration-gold/40"
             >
-              Get in touch →
+              Get In Touch →
             </a>
           </div>
           <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 text-gold" /> Salem, Tamil Nadu, India
+              <span className="text-sm">📍</span> Salem, Tamil Nadu, India
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <GraduationCap className="h-3.5 w-3.5 text-gold" /> B.E. CSE (AI &amp; ML) · CGPA 8.57
+              <span className="text-sm">🎓</span> B.E. CSE (AI &amp; ML) • CGPA 8.57
             </span>
           </div>
         </div>
 
-        <div className="col-span-12 md:col-span-5 order-1 md:order-2 relative mb-10 md:mb-0 flex justify-center md:justify-end">
+        <div className="col-span-12 lg:col-span-5 order-1 lg:order-2 relative mb-10 lg:mb-0 flex justify-center lg:justify-end">
           {/* Glassmorphism Dark Card */}
-          <div className="relative w-full max-w-[420px] h-[460px] md:h-[530px] bg-[rgba(15,15,15,0.7)] backdrop-blur-[20px] border border-[rgba(212,160,23,0.2)] shadow-[0_20px_60px_rgba(212,160,23,0.15)] rounded-[24px] p-3 transition-all duration-400 ease-in-out hover:scale-[1.03] hover:shadow-[0_20px_70px_rgba(212,160,23,0.35)] hover:border-[rgba(212,160,23,0.35)] float-slow group">
+          <div className="relative w-full max-w-[420px] h-[460px] md:h-[530px] bg-[rgba(15,15,15,0.7)] backdrop-blur-[20px] border border-[rgba(212, 160, 23,0.2)] shadow-[0_20px_60px_rgba(212, 160, 23,0.15)] rounded-[24px] p-3 transition-all duration-400 ease-in-out hover:scale-[1.03] hover:shadow-[0_20px_70px_rgba(212, 160, 23,0.35)] hover:border-[rgba(212, 160, 23,0.35)] float-slow group">
             {/* Top-Right Badge */}
-            <div className="absolute top-6 right-6 z-10 flex items-center gap-1.5 rounded-full bg-[rgba(15,15,15,0.8)] backdrop-blur-md border border-[rgba(212,160,23,0.3)] px-3 py-1.5 text-[10px] uppercase tracking-wider font-semibold text-gold shadow-lg">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#D4A017] animate-pulse shadow-[0_0_8px_rgba(212,160,23,0.8)]" />
+            <div className="absolute top-6 right-6 z-10 flex items-center gap-1.5 rounded-full bg-[rgba(15,15,15,0.8)] backdrop-blur-md border border-[rgba(212, 160, 23,0.3)] px-3 py-1.5 text-[10px] uppercase tracking-wider font-semibold text-gold shadow-lg">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#D4A017] animate-pulse shadow-[0_0_8px_rgba(212, 160, 23,0.8)]" />
               Available for Hire
             </div>
 
             {/* Inner Image Container with Gold Border and Soft Glow */}
-            <div className="relative w-full h-full rounded-[24px] overflow-hidden border border-[#D4A017] shadow-[0_0_20px_rgba(212,160,23,0.15)] group-hover:shadow-[0_0_35px_rgba(212,160,23,0.4)] group-hover:border-[#D4A017]/80 transition-all duration-400">
+            <div className="relative w-full h-full rounded-[24px] overflow-hidden border border-[#D4A017] shadow-[0_0_20px_rgba(212, 160, 23,0.15)] group-hover:shadow-[0_0_35px_rgba(212, 160, 23,0.4)] group-hover:border-[#D4A017]/80 transition-all duration-400">
               <img
                 src={profileImg}
                 alt="Dhivyadharshini G"
@@ -448,7 +401,7 @@ function Hero() {
             </div>
 
             {/* Floating Bottom Status Card */}
-            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-[85%] bg-[rgba(15,15,15,0.85)] backdrop-blur-md border border-[rgba(212,160,23,0.25)] px-4 py-3 rounded-2xl shadow-[0_15px_35px_rgba(0,0,0,0.5)] text-center transition-all duration-400 group-hover:border-[rgba(212,160,23,0.4)] group-hover:shadow-[0_15px_40px_rgba(212,160,23,0.1)]">
+            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-[85%] bg-[rgba(15,15,15,0.85)] backdrop-blur-md border border-[rgba(212, 160, 23,0.25)] px-4 py-3 rounded-2xl shadow-[0_15px_35px_rgba(0,0,0,0.5)] text-center transition-all duration-400 group-hover:border-[rgba(212, 160, 23,0.4)] group-hover:shadow-[0_15px_40px_rgba(212, 160, 23,0.1)]">
               <p className="text-[9px] uppercase tracking-[0.25em] text-[#D4A017] font-semibold mb-0.5">
                 Currently
               </p>
@@ -473,14 +426,14 @@ function Stats() {
     <section className="py-12 border-t border-border bg-background relative overflow-hidden">
       <div className="mx-auto max-w-7xl px-6 md:px-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212,160,23,0.15)] rounded-2xl p-6 text-center hover:border-gold/40 transition-colors shadow-lg group">
+          <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-6 text-center hover:border-gold/40 transition-colors shadow-lg group">
             <GraduationCap className="h-6 w-6 text-gold mx-auto mb-3 group-hover:scale-110 transition-transform" />
             <p className="text-3xl md:text-4xl font-display text-foreground font-bold">{cgpa}</p>
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-2">
               MIT Scholar CGPA
             </p>
           </div>
-          <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212,160,23,0.15)] rounded-2xl p-6 text-center hover:border-gold/40 transition-colors shadow-lg group">
+          <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-6 text-center hover:border-gold/40 transition-colors shadow-lg group">
             <Cpu className="h-6 w-6 text-gold mx-auto mb-3 group-hover:scale-110 transition-transform" />
             <p className="text-3xl md:text-4xl font-display text-foreground font-bold">
               {projectsCount}+
@@ -489,7 +442,7 @@ function Stats() {
               AI Projects Shipped
             </p>
           </div>
-          <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212,160,23,0.15)] rounded-2xl p-6 text-center hover:border-gold/40 transition-colors shadow-lg group">
+          <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-6 text-center hover:border-gold/40 transition-colors shadow-lg group">
             <Briefcase className="h-6 w-6 text-gold mx-auto mb-3 group-hover:scale-110 transition-transform" />
             <p className="text-3xl md:text-4xl font-display text-foreground font-bold">
               {internshipCount} Mo
@@ -498,7 +451,7 @@ function Stats() {
               AI Intern Experience
             </p>
           </div>
-          <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212,160,23,0.15)] rounded-2xl p-6 text-center hover:border-gold/40 transition-colors shadow-lg group">
+          <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-6 text-center hover:border-gold/40 transition-colors shadow-lg group">
             <Trophy className="h-6 w-6 text-gold mx-auto mb-3 group-hover:scale-110 transition-transform" />
             <p className="text-3xl md:text-4xl font-display text-foreground font-bold">
               {hackathonsCount}+ Major
@@ -547,12 +500,12 @@ function Marquee() {
 function About() {
   return (
     <section id="about" className="py-24 md:py-32 border-t border-border">
-      <div className="mx-auto max-w-7xl px-6 md:px-10 grid md:grid-cols-12 gap-12">
-        <div className="md:col-span-4">
+      <div className="mx-auto max-w-7xl px-6 md:px-10 grid lg:grid-cols-12 gap-12">
+        <div className="lg:col-span-4">
           <p className="text-xs tracking-[0.3em] uppercase text-gold mb-4">About</p>
           <h2 className="font-display text-5xl md:text-6xl">Builder of agentic, applied AI.</h2>
         </div>
-        <div className="md:col-span-7 md:col-start-6 space-y-6 text-lg leading-relaxed text-muted-foreground">
+        <div className="lg:col-span-7 lg:col-start-6 space-y-6 text-lg leading-relaxed text-muted-foreground">
           <p>
             I'm an AI &amp; Machine Learning undergraduate specializing in{" "}
             <span className="text-foreground">GenAI and Agentic AI systems</span>, with hands-on
@@ -594,7 +547,7 @@ function AIDomains() {
           {aiDomains.map((dom) => (
             <div
               key={dom.title}
-              className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212,160,23,0.15)] rounded-3xl p-6 hover:border-gold/40 transition-all duration-300 group hover:-translate-y-1 shadow-lg"
+              className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-3xl p-6 hover:border-gold/40 transition-all duration-300 group hover:-translate-y-1 shadow-lg"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-gold/5 rounded-xl border border-gold/20 text-gold group-hover:scale-110 transition-transform">
@@ -710,7 +663,7 @@ function ArchitectureShowcase() {
           >
             Retrieval-Augmented Generation (RAG)
             {activeTab === "rag" && (
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gold shadow-[0_0_8px_rgba(212,160,23,0.8)]" />
+              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gold shadow-[0_0_8px_rgba(212, 160, 23,0.8)]" />
             )}
           </button>
           <button
@@ -724,16 +677,16 @@ function ArchitectureShowcase() {
           >
             Multi-Agent Orchestration
             {activeTab === "agents" && (
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gold shadow-[0_0_8px_rgba(212,160,23,0.8)]" />
+              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gold shadow-[0_0_8px_rgba(212, 160, 23,0.8)]" />
             )}
           </button>
         </div>
 
         {/* Tab Content */}
         {activeTab === "rag" ? (
-          <div className="grid md:grid-cols-12 gap-10 items-center">
+          <div className="grid lg:grid-cols-12 gap-10 items-center">
             {/* Visual Flow diagram */}
-            <div className="md:col-span-7 space-y-4">
+            <div className="lg:col-span-7 space-y-4">
               <div className="flex flex-col gap-3">
                 {ragSteps.map((step, idx) => (
                   <button
@@ -741,7 +694,7 @@ function ArchitectureShowcase() {
                     onClick={() => setActiveStep(idx)}
                     className={`flex items-center gap-4 text-left p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
                       activeStep === idx
-                        ? "bg-[rgba(15,15,15,0.85)] border-gold shadow-[0_0_15px_rgba(212,160,23,0.2)] scale-[1.02]"
+                        ? "bg-[rgba(15,15,15,0.85)] border-gold shadow-[0_0_15px_rgba(212, 160, 23,0.2)] scale-[1.02]"
                         : "bg-[rgba(15,15,15,0.4)] border-border/40 hover:border-gold/40 hover:bg-[rgba(15,15,15,0.6)]"
                     }`}
                   >
@@ -768,7 +721,7 @@ function ArchitectureShowcase() {
             </div>
 
             {/* Explanation Pane */}
-            <div className="md:col-span-5 bg-[rgba(15,15,15,0.8)] backdrop-blur-md border border-[rgba(212,160,23,0.2)] rounded-3xl p-8 shadow-[0_15px_30px_rgba(0,0,0,0.4)] h-full min-h-[350px] flex flex-col justify-between">
+            <div className="lg:col-span-5 bg-[rgba(15,15,15,0.8)] backdrop-blur-md border border-[rgba(212, 160, 23,0.2)] rounded-3xl p-8 shadow-[0_15px_30px_rgba(0,0,0,0.4)] h-full min-h-[350px] flex flex-col justify-between">
               <div>
                 <span className="text-[10px] uppercase tracking-widest text-gold font-semibold">
                   Step Details 0{activeStep + 1}
@@ -789,16 +742,16 @@ function ArchitectureShowcase() {
             </div>
           </div>
         ) : (
-          <div className="grid md:grid-cols-12 gap-10 items-center">
+          <div className="grid lg:grid-cols-12 gap-10 items-center">
             {/* Visual Agent Grid */}
-            <div className="md:col-span-7 grid grid-cols-2 gap-4">
+            <div className="lg:col-span-7 grid grid-cols-2 gap-4">
               {agentSystem.map((agent, idx) => (
                 <button
                   key={agent.name}
                   onClick={() => setActiveStep(idx)}
                   className={`text-left p-6 rounded-2xl border transition-all duration-300 flex flex-col justify-between h-[160px] cursor-pointer ${
                     activeStep === idx
-                      ? "bg-[rgba(15,15,15,0.85)] border-gold shadow-[0_0_20px_rgba(212,160,23,0.25)] scale-[1.03]"
+                      ? "bg-[rgba(15,15,15,0.85)] border-gold shadow-[0_0_20px_rgba(212, 160, 23,0.25)] scale-[1.03]"
                       : "bg-[rgba(15,15,15,0.4)] border-border/40 hover:border-gold/40 hover:bg-[rgba(15,15,15,0.6)]"
                   }`}
                 >
@@ -821,7 +774,7 @@ function ArchitectureShowcase() {
             </div>
 
             {/* Agent Explanation Pane */}
-            <div className="md:col-span-5 bg-[rgba(15,15,15,0.8)] backdrop-blur-md border border-[rgba(212,160,23,0.2)] rounded-3xl p-8 shadow-[0_15px_30px_rgba(0,0,0,0.4)] min-h-[350px] flex flex-col justify-between">
+            <div className="lg:col-span-5 bg-[rgba(15,15,15,0.8)] backdrop-blur-md border border-[rgba(212, 160, 23,0.2)] rounded-3xl p-8 shadow-[0_15px_30px_rgba(0,0,0,0.4)] min-h-[350px] flex flex-col justify-between">
               <div>
                 <span className="text-[10px] uppercase tracking-widest text-gold font-semibold">
                   Active Agent Specs
@@ -891,13 +844,13 @@ function FeaturedProjects() {
                 key={p.title}
                 className={`bg-[rgba(15,15,15,0.7)] backdrop-blur-md border rounded-[24px] overflow-hidden transition-all duration-500 ${
                   isExpanded
-                    ? "border-gold shadow-[0_10px_40px_rgba(212,160,23,0.15)]"
-                    : "border-[rgba(212,160,23,0.15)] hover:border-gold/40 hover:shadow-lg"
+                    ? "border-gold shadow-[0_10px_40px_rgba(212, 160, 23,0.15)]"
+                    : "border-[rgba(212, 160, 23,0.15)] hover:border-gold/40 hover:shadow-lg"
                 }`}
               >
                 {/* Header Grid */}
-                <div className="grid md:grid-cols-12 gap-6 p-6 md:p-8 items-center">
-                  <div className="md:col-span-5 relative aspect-[16/10] overflow-hidden rounded-xl">
+                <div className="grid lg:grid-cols-12 gap-6 p-6 lg:p-8 items-center">
+                  <div className="lg:col-span-5 relative aspect-[16/10] overflow-hidden rounded-xl">
                     <img
                       src={p.img}
                       alt={p.title}
@@ -906,7 +859,7 @@ function FeaturedProjects() {
                     />
                   </div>
 
-                  <div className="md:col-span-7 flex flex-col justify-between h-full">
+                  <div className="lg:col-span-7 flex flex-col justify-between h-full">
                     <div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
                         <span className="text-gold font-semibold">{p.year}</span>
@@ -954,7 +907,7 @@ function FeaturedProjects() {
 
                 {/* Expanded Details Pane */}
                 <div
-                  className={`grid grid-cols-1 md:grid-cols-2 gap-8 px-6 md:px-8 border-t border-border/40 bg-card/20 transition-all duration-500 overflow-hidden ${
+                  className={`grid grid-cols-1 lg:grid-cols-2 gap-8 px-6 lg:px-8 border-t border-border/40 bg-card/20 transition-all duration-500 overflow-hidden ${
                     isExpanded
                       ? "max-h-[800px] py-8 opacity-100"
                       : "max-h-0 py-0 opacity-0 pointer-events-none"
@@ -1047,7 +1000,7 @@ function TechStackGrid() {
               onClick={() => setActiveFilter(f.id)}
               className={`px-4 py-2 rounded-full text-xs font-medium border transition-all duration-300 cursor-pointer ${
                 activeFilter === f.id
-                  ? "bg-gold text-primary-foreground border-gold shadow-[0_0_15px_rgba(212,160,23,0.3)]"
+                  ? "bg-gold text-primary-foreground border-gold shadow-[0_0_15px_rgba(212, 160, 23,0.3)]"
                   : "bg-card/40 text-muted-foreground border-border hover:border-gold/40 hover:text-foreground"
               }`}
             >
@@ -1065,7 +1018,7 @@ function TechStackGrid() {
                 key={s.name}
                 className={`bg-[rgba(15,15,15,0.7)] backdrop-blur-sm border rounded-2xl p-6 transition-all duration-300 relative group overflow-hidden ${
                   isHighlighted
-                    ? "border-[rgba(212,160,23,0.2)] shadow-md scale-100 opacity-100 hover:border-gold/50 hover:shadow-[0_0_20px_rgba(212,160,23,0.15)]"
+                    ? "border-[rgba(212, 160, 23,0.2)] shadow-md scale-100 opacity-100 hover:border-gold/50 hover:shadow-[0_0_20px_rgba(212, 160, 23,0.15)]"
                     : "border-border/30 opacity-40 scale-95 pointer-events-none"
                 }`}
               >
@@ -1097,12 +1050,12 @@ function ExperienceTimeline() {
           {timelineEvents.map((ev) => (
             <div key={ev.title} className="relative group">
               {/* Circular timeline node */}
-              <span className="absolute -left-[45px] md:-left-[61px] top-1.5 h-6 w-6 rounded-full bg-background border-2 border-gold flex items-center justify-center shadow-[0_0_10px_rgba(212,160,23,0.3)] group-hover:shadow-[0_0_15px_rgba(212,160,23,0.6)] group-hover:scale-110 transition-all">
+              <span className="absolute -left-[45px] md:-left-[61px] top-1.5 h-6 w-6 rounded-full bg-background border-2 border-gold flex items-center justify-center shadow-[0_0_10px_rgba(212, 160, 23,0.3)] group-hover:shadow-[0_0_15px_rgba(212, 160, 23,0.6)] group-hover:scale-110 transition-all">
                 <ev.icon className="h-3 w-3 text-gold" />
               </span>
 
               {/* Event card */}
-              <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212,160,23,0.15)] rounded-2xl p-6 md:p-8 hover:border-gold/40 transition-colors shadow-lg max-w-3xl">
+              <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-6 md:p-8 hover:border-gold/40 transition-colors shadow-lg max-w-3xl">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                   <div>
                     <span className="text-[10px] uppercase tracking-wider text-gold font-semibold bg-gold/5 border border-gold/20 px-2 py-0.5 rounded">
@@ -1138,32 +1091,64 @@ function ExperienceTimeline() {
   );
 }
 
-function Certifications() {
+function Certificates() {
   return (
     <section className="py-24 border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-6 md:px-10">
         <p className="text-xs tracking-[0.3em] uppercase text-gold mb-4">Credentials</p>
-        <h2 className="font-display text-5xl md:text-7xl mb-16">Certifications.</h2>
+        <h2 className="font-display text-5xl md:text-7xl mb-16">Certificates.</h2>
 
-        <div className="grid sm:grid-cols-2 gap-6">
-          {certifications.map((c) => (
-            <div
-              key={c.title}
-              className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212,160,23,0.15)] rounded-2xl p-6 hover:border-gold/40 hover:shadow-[0_0_20px_rgba(212,160,23,0.1)] transition-all duration-300 flex items-start gap-4 group"
-            >
-              <div className="p-3 bg-gold/5 rounded-xl border border-gold/20 text-gold group-hover:scale-110 transition-transform">
-                <c.icon className="h-6 w-6" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-lg font-bold text-foreground truncate">{c.title}</h3>
-                  <span className="text-xs text-gold font-medium shrink-0">{c.date}</span>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {certificates.map((c) => {
+            const hasPreview = false;
+
+            return (
+              <div
+                key={c.name}
+                className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-3xl p-6 hover:border-gold/40 hover:shadow-[0_0_20px_rgba(212, 160, 23,0.1)] transition-all duration-300 flex flex-col justify-between group h-full"
+              >
+                <div className="space-y-4">
+                  {/* Preview Area */}
+                  <div className="aspect-[4/3] rounded-xl bg-gold/5 border border-gold/10 flex items-center justify-center relative overflow-hidden group-hover:border-gold/30 transition-colors">
+                    {hasPreview ? (
+                      <img src="" alt={c.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center p-4">
+                        <Award className="h-10 w-10 text-gold mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Preview Pending
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground line-clamp-1">{c.name}</h3>
+                    <p className="text-xs text-gold font-medium mt-1">{c.issuer}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Issued: {c.year}</p>
+                  </div>
                 </div>
-                <p className="text-xs text-gold font-medium mt-1">{c.issuer}</p>
-                <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{c.desc}</p>
+
+                <div className="flex gap-2.5 mt-6 border-t border-border/40 pt-4">
+                  <a
+                    href={c.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 text-center bg-gold/10 border border-gold/30 text-gold font-bold py-2 rounded-xl text-[10px] uppercase tracking-wider hover:bg-gold hover:text-white transition active:scale-95 cursor-pointer"
+                  >
+                    View
+                  </a>
+                  <a
+                    href={c.fileUrl}
+                    download
+                    className="flex-1 text-center border border-gold/30 text-gold font-bold py-2 rounded-xl text-[10px] uppercase tracking-wider hover:bg-gold hover:text-black transition active:scale-95 cursor-pointer"
+                  >
+                    Download
+                  </a>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
@@ -1177,11 +1162,11 @@ function AwardsShowcase() {
         <p className="text-xs tracking-[0.3em] uppercase text-gold mb-4">Recognition</p>
         <h2 className="font-display text-5xl md:text-6xl mb-16">Achievements.</h2>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {awards.map((a) => (
             <div
               key={a.title}
-              className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212,160,23,0.15)] rounded-2xl p-8 hover:border-gold/40 hover:shadow-[0_10px_30px_rgba(212,160,23,0.1)] transition-all duration-300 relative group overflow-hidden"
+              className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-8 hover:border-gold/40 hover:shadow-[0_10px_30px_rgba(212, 160, 23,0.1)] transition-all duration-300 relative group overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gold/5 to-transparent rounded-bl-full pointer-events-none" />
               <div className="p-4 bg-gold/5 border border-gold/20 text-gold rounded-full w-fit mb-6 group-hover:scale-110 transition-transform">
@@ -1229,7 +1214,7 @@ function GitHubDashboard() {
       case 3:
         return "bg-[#a37620] border-[#c58f2a]";
       case 4:
-        return "bg-[#d4a017] border-[#ecd365] shadow-[0_0_8px_rgba(212,160,23,0.5)] animate-pulse";
+        return "bg-[#d4a017] border-[#ecd365] shadow-[0_0_8px_rgba(212, 160, 23,0.5)] animate-pulse";
       default:
         return "bg-muted/10 border-border/10";
     }
@@ -1241,7 +1226,7 @@ function GitHubDashboard() {
         <p className="text-xs tracking-[0.3em] uppercase text-gold mb-4">Open Source</p>
         <h2 className="font-display text-5xl md:text-7xl mb-16">GitHub Analytics.</h2>
 
-        <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212,160,23,0.15)] rounded-[24px] p-6 md:p-8 shadow-xl">
+        <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-[24px] p-6 md:p-8 shadow-xl">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 mb-8">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-full border border-gold/30 bg-gold/5 flex items-center justify-center text-gold">
@@ -1475,7 +1460,7 @@ function Contact() {
                 href="https://www.linkedin.com/in/dhivyadharshini-gopalakrishnan-992495326/"
                 target="_blank"
                 rel="noreferrer"
-                className="p-3 border border-[rgba(212,160,23,0.2)] rounded-xl bg-card/40 text-gold hover:border-gold hover:shadow-[0_0_10px_rgba(212,160,23,0.3)] transition"
+                className="p-3 border border-[rgba(212, 160, 23,0.2)] rounded-xl bg-card/40 text-gold hover:border-gold hover:shadow-[0_0_10px_rgba(212, 160, 23,0.3)] transition"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="h-5 w-5" />
@@ -1484,7 +1469,7 @@ function Contact() {
                 href="https://github.com/DhivyadharshiniGopalakrishnan"
                 target="_blank"
                 rel="noreferrer"
-                className="p-3 border border-[rgba(212,160,23,0.2)] rounded-xl bg-card/40 text-gold hover:border-gold hover:shadow-[0_0_10px_rgba(212,160,23,0.3)] transition"
+                className="p-3 border border-[rgba(212, 160, 23,0.2)] rounded-xl bg-card/40 text-gold hover:border-gold hover:shadow-[0_0_10px_rgba(212, 160, 23,0.3)] transition"
                 aria-label="GitHub"
               >
                 <Github className="h-5 w-5" />
@@ -1500,7 +1485,7 @@ function Contact() {
           </div>
 
           {/* Interactive Form */}
-          <div className="lg:col-span-7 bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212,160,23,0.15)] rounded-3xl p-6 md:p-8 shadow-xl relative">
+          <div className="lg:col-span-7 bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-3xl p-6 md:p-8 shadow-xl relative">
             <h3 className="text-xl font-bold text-foreground mb-6">Send a Message</h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -1524,7 +1509,7 @@ function Contact() {
                       }));
                     }
                   }}
-                  className={`w-full bg-card/30 border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/30 focus:shadow-[0_0_15px_rgba(212,160,23,0.25)] transition-all duration-300 ${
+                  className={`w-full bg-card/30 border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/30 focus:shadow-[0_0_15px_rgba(212, 160, 23,0.25)] transition-all duration-300 ${
                     touched.name && errors.name ? "border-red-500/50" : "border-border/60"
                   }`}
                   placeholder="John Doe"
@@ -1554,7 +1539,7 @@ function Contact() {
                       }));
                     }
                   }}
-                  className={`w-full bg-card/30 border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/30 focus:shadow-[0_0_15px_rgba(212,160,23,0.25)] transition-all duration-300 ${
+                  className={`w-full bg-card/30 border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/30 focus:shadow-[0_0_15px_rgba(212, 160, 23,0.25)] transition-all duration-300 ${
                     touched.email && errors.email ? "border-red-500/50" : "border-border/60"
                   }`}
                   placeholder="john@example.com"
@@ -1584,7 +1569,7 @@ function Contact() {
                       }));
                     }
                   }}
-                  className={`w-full bg-card/30 border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/30 focus:shadow-[0_0_15px_rgba(212,160,23,0.25)] transition-all duration-300 resize-none ${
+                  className={`w-full bg-card/30 border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/30 focus:shadow-[0_0_15px_rgba(212, 160, 23,0.25)] transition-all duration-300 resize-none ${
                     touched.message && errors.message ? "border-red-500/50" : "border-border/60"
                   }`}
                   placeholder="Hello, I would love to discuss an AI system idea..."
@@ -1597,7 +1582,7 @@ function Contact() {
               <button
                 type="submit"
                 disabled={status === "sending"}
-                className="w-full bg-gold hover:opacity-95 text-primary-foreground font-semibold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-all duration-300 shadow-[0_5px_15px_rgba(212,160,23,0.15)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gold hover:opacity-95 text-primary-foreground font-semibold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-all duration-300 shadow-[0_5px_15px_rgba(212, 160, 23,0.15)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === "sending" ? "Sending..." : "Send Message"}
               </button>
@@ -1676,5 +1661,976 @@ function Footer() {
         </p>
       </div>
     </footer>
+  );
+}
+
+// ====================================================
+// MOBILE APP LAYOUT & SUBCOMPONENTS
+// ====================================================
+
+function MobileAppLayout() {
+  const [activeSection, setActiveSection] = useState("top");
+
+  useEffect(() => {
+    const sections = ["top", "about", "skills", "work", "achievements", "contact"];
+    const observers = sections.map((id) => {
+      const el = document.getElementById(`mobile-${id}`);
+      if (!el) return null;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setActiveSection(id);
+          }
+        },
+        { threshold: 0.15, rootMargin: "-10% 0px -70% 0px" },
+      );
+      observer.observe(el);
+      return { observer, el };
+    });
+
+    return () => {
+      observers.forEach((obs) => {
+        if (obs) obs.observer.unobserve(obs.el);
+      });
+    };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-black text-foreground pb-20 overflow-x-hidden antialiased">
+      <MobileHeader />
+      <div className="px-4 space-y-16">
+        <MobileHero />
+        <MobileStats />
+        <MobileAbout />
+        <MobileDomains />
+        <MobileProjects />
+        <MobileSkills />
+        <MobileTimeline />
+        <MobileCertificates />
+        <MobileAchievements />
+        <MobileGitHub />
+        <MobileContact />
+      </div>
+      <MobileFooter />
+      <MobileBottomNav activeSection={activeSection} setActiveSection={setActiveSection} />
+    </div>
+  );
+}
+
+function MobileHeader() {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-[rgba(10,10,10,0.8)] backdrop-blur-md border-b border-[rgba(212, 160, 23,0.15)] flex items-center justify-between px-4">
+      <a
+        href="#mobile-top"
+        className="flex items-center gap-1.5 font-display text-base font-semibold"
+      >
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-gold animate-pulse" />
+        Dhivyadharshini<span className="text-gold">.</span>G
+      </a>
+      <span className="text-[9px] uppercase tracking-wider bg-gold/5 border border-gold/25 px-2.5 py-1 rounded-full text-gold font-bold">
+        Available for hire
+      </span>
+    </header>
+  );
+}
+
+function MobileHero() {
+  return (
+    <section id="mobile-top" className="pt-24 pb-4 flex flex-col items-center text-center">
+      {/* 1. Profile Photo */}
+      <div className="relative w-[200px] h-[200px] bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.2)] rounded-3xl p-1.5 shadow-[0_10px_35px_rgba(212, 160, 23,0.15)] mb-6">
+        <div className="w-full h-full rounded-2xl overflow-hidden border border-[#D4A017] shadow-[0_0_15px_rgba(212, 160, 23,0.1)]">
+          <img src={profileImg} alt="Dhivyadharshini G" className="w-full h-full object-cover" />
+        </div>
+      </div>
+
+      {/* 2. Name */}
+      <h1 className="font-display text-4xl font-extrabold tracking-tight mb-2">
+        Dhivyadharshini G
+      </h1>
+
+      {/* 3. Role */}
+      <p className="text-xs uppercase tracking-[0.2em] text-gold font-bold mb-4 px-4">
+        AI Engineer • Prompt Engineer • GenAI Developer • Agentic AI Systems Builder
+      </p>
+
+      {/* 4. Skills Badges */}
+      <div className="flex flex-wrap justify-center gap-1.5 mb-6 max-w-sm">
+        {["AI / ML", "GenAI", "Agentic AI Systems"].map((badge) => (
+          <span
+            key={badge}
+            className="text-[9px] uppercase tracking-wider bg-gold/5 border border-gold/15 px-2.5 py-1 rounded-full text-gold/80"
+          >
+            {badge}
+          </span>
+        ))}
+      </div>
+
+      {/* 5. Description */}
+      <p className="text-xs text-muted-foreground leading-relaxed max-w-xs px-2 mb-6">
+        Building scalable AI applications, RAG pipelines, intelligent agents, and machine learning
+        solutions that transform data into actionable intelligence.
+      </p>
+
+      {/* 6. Action Buttons */}
+      <div className="flex flex-col w-full max-w-[260px] gap-3 mb-8">
+        <a
+          href="#mobile-work"
+          className="w-full text-center bg-gold text-primary-foreground font-semibold py-3 rounded-full text-xs uppercase tracking-wider shadow-[0_5px_12px_rgba(212, 160, 23,0.2)] active:scale-95 transition-transform"
+        >
+          View Projects
+        </a>
+        <a
+          href="#mobile-contact"
+          className="w-full text-center border border-gold/40 text-gold font-semibold py-3 rounded-full text-xs uppercase tracking-wider bg-gold/5 active:scale-95 transition-transform"
+        >
+          Get In Touch
+        </a>
+      </div>
+
+      {/* 7. AI Visualization */}
+      <div className="w-full border-t border-border/40 pt-8 mt-4">
+        <p className="text-[10px] uppercase tracking-widest text-gold font-bold mb-4">
+          Core AI Architecture
+        </p>
+        <MobileInteractiveFlow />
+      </div>
+    </section>
+  );
+}
+
+function MobileInteractiveFlow() {
+  const [activeStep, setActiveStep] = useState(0);
+  const steps = [
+    { title: "Query", desc: "User inputs natural language query via Flask API", tech: "REST API" },
+    {
+      title: "Retrieval",
+      desc: "Retrieves matches representing database schemas from ChromaDB",
+      tech: "Vector Space",
+    },
+    {
+      title: "Inference",
+      desc: "Processes prompt on-device to output structured SQL",
+      tech: "Ollama / Llama 3",
+    },
+    {
+      title: "Response",
+      desc: "Executes SQL and returns conversational answer in UI",
+      tech: "JSON / SQLite",
+    },
+  ];
+
+  return (
+    <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-5 text-left">
+      <div className="flex justify-between border-b border-border/40 pb-3 mb-4">
+        {steps.map((s, idx) => (
+          <button
+            key={idx}
+            onClick={() => setActiveStep(idx)}
+            className={`text-xs font-bold pb-1 cursor-pointer transition ${
+              activeStep === idx ? "text-gold border-b-2 border-gold" : "text-muted-foreground"
+            }`}
+          >
+            0{idx + 1}
+          </button>
+        ))}
+      </div>
+      <div>
+        <h4 className="text-sm font-bold text-foreground mb-1">{steps[activeStep].title}</h4>
+        <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+          {steps[activeStep].desc}
+        </p>
+        <div className="text-[10px] text-gold font-semibold uppercase tracking-wider">
+          Tech: {steps[activeStep].tech}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileStats() {
+  const cgpa = useCountUpDecimal(8.57);
+  const projectsCount = useCountUp(6);
+  const internshipCount = useCountUp(6);
+  const hackathonsCount = useCountUp(2);
+
+  return (
+    <section className="grid grid-cols-2 gap-3">
+      <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-4 text-center">
+        <GraduationCap className="h-5 w-5 text-gold mx-auto mb-2" />
+        <p className="text-2xl font-bold text-foreground">{cgpa}</p>
+        <p className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1">CGPA</p>
+      </div>
+      <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-4 text-center">
+        <Cpu className="h-5 w-5 text-gold mx-auto mb-2" />
+        <p className="text-2xl font-bold text-foreground">{projectsCount}+</p>
+        <p className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1">
+          AI Projects
+        </p>
+      </div>
+      <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-4 text-center">
+        <Briefcase className="h-5 w-5 text-gold mx-auto mb-2" />
+        <p className="text-2xl font-bold text-foreground">{internshipCount} Mo</p>
+        <p className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1">Internship</p>
+      </div>
+      <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-4 text-center">
+        <Trophy className="h-5 w-5 text-gold mx-auto mb-2" />
+        <p className="text-2xl font-bold text-foreground">{hackathonsCount}+ Wins</p>
+        <p className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1">Hackathons</p>
+      </div>
+    </section>
+  );
+}
+
+function MobileAbout() {
+  return (
+    <section id="mobile-about" className="scroll-mt-16 space-y-4">
+      <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">About</p>
+      <h2 className="font-display text-3xl font-bold leading-tight">Builder of Applied AI.</h2>
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        I am a Computer Science undergraduate majoring in Artificial Intelligence &amp; Machine
+        Learning. I specialize in building agentic systems, context-aware RAG assistants, and
+        scalable classifiers.
+      </p>
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        My experience includes a 6-month AI internship where I designed multi-agent content
+        schedulers and spam filter pipelines.
+      </p>
+    </section>
+  );
+}
+
+function MobileDomains() {
+  return (
+    <section className="space-y-6">
+      <div>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">
+          Core Competencies
+        </p>
+        <h2 className="font-display text-3xl font-bold mt-1">AI Focus Areas.</h2>
+      </div>
+      <div className="grid gap-3">
+        {aiDomains.map((dom) => (
+          <div
+            key={dom.title}
+            className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.12)] rounded-2xl p-4 flex items-start gap-4"
+          >
+            <div className="p-2.5 bg-gold/5 rounded-xl border border-gold/15 text-gold shrink-0">
+              <dom.icon className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-sm font-bold text-foreground">{dom.title}</h3>
+                <span className="text-[8px] tracking-wider uppercase bg-gold/5 border border-gold/15 px-1.5 py-0.5 rounded text-gold font-medium">
+                  {dom.badge}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">{dom.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function MobileProjects() {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const toggleExpand = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  return (
+    <section id="mobile-work" className="scroll-mt-16 space-y-6">
+      <div>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Selected Work</p>
+        <h2 className="font-display text-3xl font-bold mt-1">Things I've Built.</h2>
+      </div>
+      <div className="space-y-6">
+        {projects.map((p) => {
+          const isExpanded = expandedId === p.id;
+          return (
+            <article
+              key={p.id}
+              className={`bg-[rgba(15,15,15,0.75)] backdrop-blur-lg border rounded-3xl overflow-hidden transition-all duration-400 ${
+                isExpanded
+                  ? "border-gold shadow-[0_10px_25px_rgba(212, 160, 23,0.15)]"
+                  : "border-[rgba(212, 160, 23,0.15)]"
+              }`}
+            >
+              <div className="relative aspect-[16/10] overflow-hidden">
+                <img src={p.img} alt={p.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[rgba(10,10,10,0.95)] via-transparent to-transparent" />
+                <div className="absolute top-4 left-4 bg-[rgba(15,15,15,0.85)] border border-[rgba(212, 160, 23,0.3)] px-3 py-1 rounded-full text-[9px] uppercase font-bold text-gold">
+                  {p.year}
+                </div>
+              </div>
+
+              <div className="p-5">
+                <p className="text-[10px] text-gold font-semibold uppercase tracking-wider mb-1">
+                  {p.role}
+                </p>
+                <h3 className="text-xl font-bold text-foreground mb-3 leading-snug">{p.title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-4">{p.desc}</p>
+
+                <div className="flex flex-wrap gap-1.5 mb-5">
+                  {p.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[9px] border border-gold/15 bg-gold/5 rounded-full px-2.5 py-0.5 text-muted-foreground"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between border-t border-border/40 pt-4">
+                  <a
+                    href={p.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-gold tracking-wider"
+                  >
+                    Source Code <ArrowUpRight className="h-3 w-3" />
+                  </a>
+
+                  <button
+                    onClick={() => toggleExpand(p.id)}
+                    className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-gold tracking-wider cursor-pointer"
+                  >
+                    {isExpanded ? "Hide Specs" : "View Specs"}
+                    {isExpanded ? (
+                      <ChevronUp className="h-3.5 w-3.5" />
+                    ) : (
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {isExpanded && (
+                <div className="px-5 pb-5 border-t border-border/20 bg-card/10 space-y-4 pt-4 animate-reveal">
+                  <div>
+                    <h4 className="text-[9px] uppercase tracking-wider text-gold font-bold mb-1">
+                      Problem Statement
+                    </h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {p.problemStatement}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-[9px] uppercase tracking-wider text-gold font-bold mb-1">
+                      System Architecture
+                    </h4>
+                    <div className="pl-4 border-l border-gold/20 space-y-2 mt-2">
+                      {p.architecture.map((step, idx) => (
+                        <div
+                          key={idx}
+                          className="relative text-xs text-muted-foreground leading-relaxed"
+                        >
+                          <span className="absolute -left-[23px] top-0 h-4 w-4 rounded-full bg-card border border-gold/30 flex items-center justify-center text-[8px] font-bold text-gold">
+                            {idx + 1}
+                          </span>
+                          {step}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-[9px] uppercase tracking-wider text-gold font-bold mb-1">
+                      Results
+                    </h4>
+                    <p className="text-xs text-foreground bg-gold/5 border border-gold/15 p-3 rounded-xl font-medium">
+                      {p.results}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function MobileSkills() {
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  const filteredSkills =
+    activeFilter === "all" ? techSkills : techSkills.filter((s) => s.category === activeFilter);
+
+  return (
+    <section id="mobile-skills" className="scroll-mt-16 space-y-6">
+      <div>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Skills</p>
+        <h2 className="font-display text-3xl font-bold mt-1">Tech Stack.</h2>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {[
+          { id: "all", label: "All" },
+          { id: "genai", label: "GenAI" },
+          { id: "ml", label: "ML" },
+          { id: "lang", label: "Languages" },
+          { id: "tool", label: "Tools" },
+        ].map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setActiveFilter(f.id)}
+            className={`px-4 py-1.5 rounded-full text-[10px] font-semibold border shrink-0 cursor-pointer transition ${
+              activeFilter === f.id
+                ? "bg-gold text-primary-foreground border-gold shadow-[0_0_10px_rgba(212, 160, 23,0.3)]"
+                : "bg-card/40 text-muted-foreground border-border"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2.5">
+        {techSkills.map((s) => {
+          const isHighlighted = activeFilter === "all" || s.category === activeFilter;
+          return (
+            <div
+              key={s.name}
+              className={`bg-[rgba(15,15,15,0.7)] border rounded-xl p-4 transition-all duration-300 relative ${
+                isHighlighted
+                  ? "border-[rgba(212, 160, 23,0.2)] opacity-100 scale-100"
+                  : "border-border/30 opacity-30 scale-95 pointer-events-none"
+              }`}
+            >
+              <p className="text-[8px] text-gold uppercase tracking-wider mb-1">{s.level}</p>
+              <h3 className="text-sm font-semibold text-foreground">{s.name}</h3>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function MobileTimeline() {
+  return (
+    <section className="space-y-6">
+      <div>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Journey</p>
+        <h2 className="font-display text-3xl font-bold mt-1">Timeline.</h2>
+      </div>
+
+      <div className="relative border-l border-gold/30 ml-3 pl-6 space-y-8">
+        {timelineEvents.map((ev) => (
+          <div key={ev.title} className="relative">
+            <span className="absolute -left-[37px] top-1 h-5 w-5 rounded-full bg-background border-2 border-gold flex items-center justify-center shadow-[0_0_8px_rgba(212, 160, 23,0.3)]">
+              <ev.icon className="h-2.5 w-2.5 text-gold" />
+            </span>
+            <div className="bg-[rgba(15,15,15,0.7)] border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <span className="text-[8px] uppercase tracking-wider text-gold font-semibold bg-gold/5 border border-gold/25 px-1.5 py-0.5 rounded">
+                  {ev.type}
+                </span>
+                <span className="text-[9px] text-muted-foreground font-medium">{ev.date}</span>
+              </div>
+              <h3 className="text-base font-bold text-foreground">{ev.title}</h3>
+              <p className="text-xs text-gold/80 font-medium mb-2">{ev.company}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{ev.desc}</p>
+              {ev.bulletPoints.length > 0 && (
+                <ul className="space-y-1.5 mt-3 border-t border-border/40 pt-3">
+                  {ev.bulletPoints.map((bp) => (
+                    <li
+                      key={bp}
+                      className="flex gap-2 text-[10px] text-muted-foreground leading-relaxed"
+                    >
+                      <span className="mt-1.5 inline-block h-1 w-1.5 bg-gold shrink-0" />
+                      <span>{bp}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function MobileCertificates() {
+  return (
+    <section className="space-y-6">
+      <div>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Credentials</p>
+        <h2 className="font-display text-3xl font-bold mt-1">Certificates.</h2>
+      </div>
+
+      <div className="grid gap-3.5">
+        {certificates.map((c) => {
+          const hasPreview = false;
+
+          return (
+            <div
+              key={c.name}
+              className="bg-[rgba(15,15,15,0.7)] border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-5 relative overflow-hidden"
+            >
+              <div className="space-y-4">
+                {/* Preview Area */}
+                <div className="aspect-[4/3] rounded-xl bg-gold/5 border border-gold/10 flex items-center justify-center relative overflow-hidden">
+                  {hasPreview ? (
+                    <img src="" alt={c.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-center p-4">
+                      <Award className="h-8 w-8 text-gold mx-auto mb-1" />
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                        Preview Pending
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="text-base font-bold text-foreground">{c.name}</h3>
+                  <p className="text-xs text-gold font-medium mt-0.5">{c.issuer}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Issued: {c.year}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-4 border-t border-border/40 pt-4">
+                <a
+                  href={c.fileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 text-center bg-gold/10 border border-gold/30 text-gold font-bold py-2 rounded-xl text-[9px] uppercase tracking-wider hover:bg-gold hover:text-white transition active:scale-95 cursor-pointer"
+                >
+                  View
+                </a>
+                <a
+                  href={c.fileUrl}
+                  download
+                  className="flex-1 text-center border border-gold/30 text-gold font-bold py-2 rounded-xl text-[9px] uppercase tracking-wider hover:bg-gold hover:text-black transition active:scale-95 cursor-pointer"
+                >
+                  Download
+                </a>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function MobileAchievements() {
+  return (
+    <section id="mobile-achievements" className="scroll-mt-16 space-y-6">
+      <div>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Recognition</p>
+        <h2 className="font-display text-3xl font-bold mt-1">Achievements.</h2>
+      </div>
+
+      <div className="grid gap-3">
+        {awards.map((a) => (
+          <div
+            key={a.title}
+            className="bg-[rgba(15,15,15,0.7)] border border-[rgba(212, 160, 23,0.15)] rounded-2xl p-5 relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-gold/5 to-transparent rounded-bl-full pointer-events-none" />
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-gold/5 border border-gold/20 text-gold rounded-full shrink-0">
+                <a.icon className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-[8px] tracking-wider uppercase text-gold block font-semibold mb-1">
+                  {a.stat}
+                </span>
+                <h3 className="text-base font-bold text-foreground mb-1 leading-snug">{a.title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{a.desc}</p>
+                <p className="text-[9px] text-gold/60 mt-2 uppercase tracking-widest font-semibold">
+                  {a.year}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function MobileGitHub() {
+  return (
+    <section className="space-y-6">
+      <div>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Analytics</p>
+        <h2 className="font-display text-3xl font-bold mt-1">GitHub Activity.</h2>
+      </div>
+
+      <div className="bg-[rgba(15,15,15,0.7)] border border-[rgba(212, 160, 23,0.15)] rounded-3xl p-5">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="h-10 w-10 rounded-full border border-gold/30 bg-gold/5 flex items-center justify-center text-gold">
+            <Github className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-foreground">@DhivyadharshiniG</h3>
+            <p className="text-[10px] text-gold">AI / ML Engineer &amp; Open Source Contributor</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center">
+            <span className="text-[9px] text-muted-foreground block font-bold">Commits</span>
+            <span className="text-sm font-bold text-gold">1,420+</span>
+          </div>
+          <div className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center">
+            <span className="text-[9px] text-muted-foreground block font-bold">PRs Merged</span>
+            <span className="text-sm font-bold text-gold">86</span>
+          </div>
+          <div className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center">
+            <span className="text-[9px] text-muted-foreground block font-bold">Repos</span>
+            <span className="text-sm font-bold text-gold">12</span>
+          </div>
+          <div className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center">
+            <span className="text-[9px] text-muted-foreground block font-bold">Stars</span>
+            <span className="text-sm font-bold text-gold">48</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MobileContact() {
+  const [downloading, setDownloading] = useState(false);
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [touched, setTouched] = useState({ name: false, email: false, message: false });
+  const [errors, setErrors] = useState({ name: "", email: "", message: "" });
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+
+  const validate = (field?: "name" | "email" | "message") => {
+    const newErrors = { ...errors };
+    if (!field || field === "name") {
+      if (!formData.name) newErrors.name = "Name is required.";
+      else if (formData.name.trim().length < 3)
+        newErrors.name = "Name must be at least 3 characters.";
+      else newErrors.name = "";
+    }
+    if (!field || field === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!formData.email) newErrors.email = "Email is required.";
+      else if (!emailRegex.test(formData.email)) newErrors.email = "Please enter a valid email.";
+      else newErrors.email = "";
+    }
+    if (!field || field === "message") {
+      if (!formData.message) newErrors.message = "Message is required.";
+      else if (formData.message.trim().length < 20)
+        newErrors.message = "Message must be at least 20 characters.";
+      else newErrors.message = "";
+    }
+    setErrors(newErrors);
+    return !newErrors.name && !newErrors.email && !newErrors.message;
+  };
+
+  const handleDownload = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setDownloading(true);
+    setTimeout(() => {
+      setDownloading(false);
+      const link = document.createElement("a");
+      link.href = "#";
+      link.setAttribute("download", "Dhivyadharshini_G_Resume.pdf");
+      document.body.appendChild(link);
+      alert("Dhivyadharshini_G_Resume.pdf download simulation triggered!");
+    }, 2000);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTouched({ name: true, email: true, message: true });
+    if (!validate()) return;
+    setStatus("sending");
+
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "";
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "";
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "";
+
+    try {
+      await emailjs.send(
+        serviceId,
+        templateId,
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          message: formData.message,
+        },
+        publicKey,
+      );
+      setStatus("success");
+      setFormData({ name: "", email: "", message: "" });
+      setTouched({ name: false, email: false, message: false });
+      setTimeout(() => setStatus("idle"), 5000);
+    } catch (err) {
+      console.error(err);
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 5000);
+    }
+  };
+
+  return (
+    <section id="mobile-contact" className="scroll-mt-16 space-y-6 pb-6">
+      <div>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Contact</p>
+        <h2 className="font-display text-3xl font-bold mt-1">Let's Connect.</h2>
+      </div>
+
+      <div className="space-y-6">
+        <div className="bg-[rgba(15,15,15,0.7)] border border-[rgba(212, 160, 23,0.15)] rounded-3xl p-5 space-y-4">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Have an AI/ML concept or a Multi-Agent automation idea you want implemented? Drop a
+            message or download my resume below.
+          </p>
+          <div className="space-y-3 text-xs text-muted-foreground">
+            <a
+              href="tel:+918870870513"
+              className="flex items-center gap-3.5 hover:text-gold transition"
+            >
+              <Phone className="h-4.5 w-4.5 text-gold shrink-0" /> +91 88708 70513
+            </a>
+            <a
+              href="mailto:dhivyadharshinigopalakrishnan@gmail.com"
+              className="flex items-center gap-3.5 hover:text-gold transition break-all"
+            >
+              <Mail className="h-4.5 w-4.5 text-gold shrink-0" />{" "}
+              dhivyadharshinigopalakrishnan@gmail.com
+            </a>
+            <span className="flex items-center gap-3.5">
+              <MapPin className="h-4.5 w-4.5 text-gold shrink-0" /> Salem, Tamil Nadu, India
+            </span>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <a
+              href="https://www.linkedin.com/in/dhivyadharshini-gopalakrishnan-992495326/"
+              target="_blank"
+              rel="noreferrer"
+              className="p-3 border border-[rgba(212, 160, 23,0.15)] rounded-2xl bg-card/20 text-gold flex-1 flex justify-center active:scale-95 transition-transform"
+              aria-label="LinkedIn"
+            >
+              <Linkedin className="h-4.5 w-4.5" />
+            </a>
+            <a
+              href="https://github.com/DhivyadharshiniGopalakrishnan"
+              target="_blank"
+              rel="noreferrer"
+              className="p-3 border border-[rgba(212, 160, 23,0.15)] rounded-2xl bg-card/20 text-gold flex-1 flex justify-center active:scale-95 transition-transform"
+              aria-label="GitHub"
+            >
+              <Github className="h-4.5 w-4.5" />
+            </a>
+            <button
+              onClick={handleDownload}
+              className="px-5 border border-gold/30 rounded-2xl text-[10px] font-bold text-gold flex-[2] flex justify-center items-center gap-1.5 bg-gold/5 active:scale-95 transition-transform cursor-pointer"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              {downloading ? "PDF..." : "Resume"}
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-[rgba(15,15,15,0.7)] border border-[rgba(212, 160, 23,0.15)] rounded-3xl p-5">
+          <h3 className="text-sm font-bold text-foreground mb-4">Send a Message</h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-[8px] uppercase tracking-wider text-muted-foreground block mb-1 font-bold">
+                Your Name
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, name: e.target.value }));
+                  if (touched.name || e.target.value.length > 2) validate("name");
+                }}
+                className={`w-full bg-card/20 border rounded-xl px-4 py-3 text-xs text-foreground focus:outline-none focus:border-gold transition ${
+                  touched.name && errors.name ? "border-red-500/50" : "border-border/60"
+                }`}
+                placeholder="John Doe"
+              />
+              {touched.name && errors.name && (
+                <p className="text-red-400 text-[10px] mt-1 font-medium">{errors.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-[8px] uppercase tracking-wider text-muted-foreground block mb-1 font-bold">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, email: e.target.value }));
+                  if (touched.email) validate("email");
+                }}
+                className={`w-full bg-card/20 border rounded-xl px-4 py-3 text-xs text-foreground focus:outline-none focus:border-gold transition ${
+                  touched.email && errors.email ? "border-red-500/50" : "border-border/60"
+                }`}
+                placeholder="john@example.com"
+              />
+              {touched.email && errors.email && (
+                <p className="text-red-400 text-[10px] mt-1 font-medium">{errors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-[8px] uppercase tracking-wider text-muted-foreground block mb-1 font-bold">
+                Message
+              </label>
+              <textarea
+                rows={3}
+                value={formData.message}
+                onBlur={() => setTouched((prev) => ({ ...prev, message: true }))}
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, message: e.target.value }));
+                  if (touched.message || e.target.value.length > 10) validate("message");
+                }}
+                className={`w-full bg-card/20 border rounded-xl px-4 py-3 text-xs text-foreground focus:outline-none focus:border-gold transition resize-none ${
+                  touched.message && errors.message ? "border-red-500/50" : "border-border/60"
+                }`}
+                placeholder="Hello, let's talk about..."
+              />
+              {touched.message && errors.message && (
+                <p className="text-red-400 text-[10px] mt-1 font-medium">{errors.message}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={status === "sending"}
+              className="w-full bg-gold text-primary-foreground font-bold text-[10px] uppercase tracking-wider py-3.5 rounded-xl transition active:scale-95 disabled:opacity-50 cursor-pointer"
+            >
+              {status === "sending" ? "Sending..." : "Send Message"}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {status === "success" && (
+        <div className="fixed bottom-20 left-4 right-4 z-50 flex items-start gap-3 rounded-xl bg-[rgba(15,15,15,0.95)] backdrop-blur-md border border-emerald-500/30 p-4 text-xs text-foreground shadow-lg animate-reveal">
+          <CheckCircle className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-emerald-400">✓ Message sent successfully.</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">I will get back to you soon.</p>
+          </div>
+        </div>
+      )}
+
+      {status === "error" && (
+        <div className="fixed bottom-20 left-4 right-4 z-50 flex items-start gap-3 rounded-xl bg-[rgba(15,15,15,0.95)] backdrop-blur-md border border-red-500/30 p-4 text-xs text-foreground shadow-lg animate-reveal">
+          <span className="h-4.5 w-4.5 rounded-full border border-red-500 flex items-center justify-center text-red-500 font-bold text-[9px] shrink-0 mt-0.5">
+            ✕
+          </span>
+          <div>
+            <p className="font-semibold text-red-400">✕ Failed to send message.</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Please try again.</p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function MobileFooter() {
+  return (
+    <footer className="border-t border-border py-8 bg-background relative overflow-hidden text-center pb-24">
+      <div className="space-y-2">
+        <p className="text-sm font-display text-gold tracking-wide">Dhivyadharshini G</p>
+        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.15em] px-4">
+          AI / ML Engineer | GenAI Developer
+        </p>
+      </div>
+
+      <div className="flex justify-center items-center gap-6 text-[10px] text-muted-foreground mt-4">
+        <a
+          href="https://github.com/DhivyadharshiniGopalakrishnan"
+          target="_blank"
+          rel="noreferrer"
+          className="hover:text-gold transition"
+        >
+          GitHub
+        </a>
+        <span className="text-border">|</span>
+        <a
+          href="https://www.linkedin.com/in/dhivyadharshini-gopalakrishnan-992495326/"
+          target="_blank"
+          rel="noreferrer"
+          className="hover:text-gold transition"
+        >
+          LinkedIn
+        </a>
+        <span className="text-border">|</span>
+        <a
+          href="mailto:dhivyadharshinigopalakrishnan@gmail.com"
+          className="hover:text-gold transition"
+        >
+          Email
+        </a>
+      </div>
+
+      <p className="text-[8px] text-muted-foreground uppercase tracking-[0.2em] mt-4">
+        © 2026 Dhivyadharshini G. All Rights Reserved.
+      </p>
+    </footer>
+  );
+}
+
+function MobileBottomNav({
+  activeSection,
+  setActiveSection,
+}: {
+  activeSection: string;
+  setActiveSection: (sec: string) => void;
+}) {
+  const tabs = [
+    { id: "top", label: "Home", icon: Home },
+    { id: "about", label: "About", icon: User },
+    { id: "skills", label: "Skills", icon: Zap },
+    { id: "work", label: "Projects", icon: Briefcase },
+    { id: "achievements", label: "Awards", icon: Trophy },
+    { id: "contact", label: "Contact", icon: Phone },
+  ];
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-[rgba(10,10,10,0.85)] backdrop-blur-lg border-t border-[rgba(212, 160, 23,0.18)] flex justify-around items-center px-2 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+      {tabs.map((tab) => {
+        const Icon = tab.icon;
+        const isActive = activeSection === tab.id;
+        return (
+          <a
+            key={tab.id}
+            href={`#mobile-${tab.id}`}
+            onClick={() => setActiveSection(tab.id)}
+            className="flex flex-col items-center justify-center flex-1 h-full py-1.5 relative transition active:scale-90"
+          >
+            <Icon
+              className={`h-5 w-5 transition-transform duration-300 ${
+                isActive ? "text-gold scale-110" : "text-muted-foreground"
+              }`}
+            />
+            <span
+              className={`text-[8px] mt-1 tracking-wider font-semibold transition-colors duration-300 ${
+                isActive ? "text-gold" : "text-muted-foreground"
+              }`}
+            >
+              {tab.label}
+            </span>
+            {isActive && (
+              <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-gold shadow-[0_0_8px_rgba(212, 160, 23,0.8)] animate-pulse" />
+            )}
+          </a>
+        );
+      })}
+    </nav>
   );
 }
