@@ -33,6 +33,7 @@ import profileImg from "@/assets/images/profile.jpg";
 import projRag from "@/assets/proj-rag.jpg";
 import projAgents from "@/assets/proj-agents.jpg";
 import projNlp from "@/assets/proj-nlp.jpg";
+import certInternship from "@/assets/internship-certificate.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -224,9 +225,10 @@ const awards = [
 const certificates = [
   {
     name: "Internship Completion Certificate",
-    issuer: "Cube AI Solutions Pvt. Ltd.",
+    issuer: "CubeAISolutions Tech Pvt. Ltd.",
     year: "2025",
-    fileUrl: "#",
+    fileUrl: certInternship,
+    image: certInternship,
   },
 ];
 
@@ -1100,7 +1102,7 @@ function Certificates() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {certificates.map((c) => {
-            const hasPreview = false;
+            const hasPreview = !!c.image;
 
             return (
               <div
@@ -1111,7 +1113,7 @@ function Certificates() {
                   {/* Preview Area */}
                   <div className="aspect-[4/3] rounded-xl bg-gold/5 border border-gold/10 flex items-center justify-center relative overflow-hidden group-hover:border-gold/30 transition-colors">
                     {hasPreview ? (
-                      <img src="" alt={c.name} className="w-full h-full object-cover" />
+                      <img src={c.image} alt={c.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-center p-4">
                         <Award className="h-10 w-10 text-gold mx-auto mb-2 group-hover:scale-110 transition-transform" />
@@ -2166,7 +2168,7 @@ function MobileCertificates() {
 
       <div className="grid gap-3.5">
         {certificates.map((c) => {
-          const hasPreview = false;
+          const hasPreview = !!c.image;
 
           return (
             <div
@@ -2177,7 +2179,7 @@ function MobileCertificates() {
                 {/* Preview Area */}
                 <div className="aspect-[4/3] rounded-xl bg-gold/5 border border-gold/10 flex items-center justify-center relative overflow-hidden">
                   {hasPreview ? (
-                    <img src="" alt={c.name} className="w-full h-full object-cover" />
+                    <img src={c.image} alt={c.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="text-center p-4">
                       <Award className="h-8 w-8 text-gold mx-auto mb-1" />
