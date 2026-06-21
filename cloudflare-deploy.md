@@ -6,7 +6,7 @@ This guide outlines deployment procedures for the **React (Vite + TanStack Start
 
 ## Deploying the React Portfolio
 
-The portfolio compiles into a static site inside `dist/client`.
+The portfolio compiles into a static site inside `dist`.
 
 ### Option A: Cloudflare Pages (Recommended)
 
@@ -15,7 +15,7 @@ The portfolio compiles into a static site inside `dist/client`.
 3. Configure the following build settings:
    - **Framework Preset**: `Vite` (or `None`)
    - **Build Command**: `npm run build`
-   - **Output Directory**: `dist/client`
+   - **Output Directory**: `dist`
    - **Root Directory**: `/` (default)
 4. Add the following **Environment Variables** (in project settings or build time settings) to integrate EmailJS:
    - `VITE_EMAILJS_SERVICE_ID` = `your_emailjs_service_id`
@@ -29,7 +29,7 @@ The portfolio compiles into a static site inside `dist/client`.
 2. Set build configurations:
    - **Framework Preset**: `Vite`
    - **Build Command**: `npm run build`
-   - **Output Directory**: `dist/client`
+   - **Output Directory**: `dist`
 3. Add your `VITE_EMAILJS_*` keys under Environment Variables.
 4. Click **Deploy**.
 
