@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import emailjs from "@emailjs/browser";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DhivyAIChatbot from "@/components/DhivyAIChatbot";
-import { CaseStudies, MobileCaseStudies } from "@/components/CaseStudies";
-import { getMappedProject } from "@/lib/github-sync";
+import { CaseStudyModal } from "@/components/CaseStudies";
+import { getMappedProject, MappedProject } from "@/lib/github-sync";
 import { ProjectImage } from "@/components/ProjectImage";
 import {
   ArrowUpRight,
@@ -33,12 +33,15 @@ import {
   Home,
   User,
   Zap,
+  X,
+  Download,
 } from "lucide-react";
 import profileImg from "@/assets/images/profile.jpg";
 import projRag from "@/assets/proj-rag.jpg";
 import projAgents from "@/assets/proj-agents.jpg";
 import projNlp from "@/assets/proj-nlp.jpg";
 import certInternship from "@/assets/internship-certificate.png";
+import certJustPromptIt from "@/assets/just-prompt-it-certificate.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -190,6 +193,17 @@ const certificates = [
     year: "2025",
     fileUrl: certInternship,
     image: certInternship,
+    category: "Internship",
+    achievement: "Internship Completion",
+  },
+  {
+    name: "Just Prompt It",
+    issuer: "Mahendra Institute of Technology",
+    year: "2025",
+    fileUrl: certJustPromptIt,
+    image: certJustPromptIt,
+    category: "Prompt Engineering",
+    achievement: 'Participated / Won in "Just Prompt It"',
   },
 ];
 
@@ -243,7 +257,6 @@ function DesktopLayout() {
       <AIDomains />
       <ArchitectureShowcase />
       <FeaturedProjects />
-      <CaseStudies />
       <TechStackGrid />
       <ExperienceTimeline />
       <Certificates />
@@ -259,7 +272,7 @@ function Nav() {
   const [activeSection, setActiveSection] = useState("top");
 
   useEffect(() => {
-    const sections = ["top", "about", "work", "experience", "skills", "contact"];
+    const sections = ["top", "about", "work", "experience", "skills", "certificates", "contact"];
     const observers = sections.map((id) => {
       const el = document.getElementById(id);
       if (!el) return null;
@@ -358,6 +371,17 @@ function Nav() {
             }`}
           >
             Skills
+          </a>
+          <a
+            href="#certificates"
+            onClick={(e) => scrollToSection("certificates", e)}
+            className={`transition-colors duration-300 ${
+              activeSection === "certificates"
+                ? "text-gold font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Certificates
           </a>
           <a
             href="#contact"
@@ -877,7 +901,7 @@ function ArchitectureShowcase() {
 }
 
 function FeaturedProjects() {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [activeStudy, setActiveStudy] = useState<MappedProject | null>(null);
   const [activeCategory, setActiveCategory] = useState("all");
 
   const reposQuery = useQuery({
@@ -886,10 +910,6 @@ function FeaturedProjects() {
     retry: 2,
     staleTime: 1000 * 60 * 5,
   });
-
-  const toggleExpand = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
-  };
 
   if (reposQuery.isLoading) {
     return (
@@ -948,6 +968,25 @@ function FeaturedProjects() {
     { id: "academic", label: "Academic Projects" },
   ];
 
+  const getCategoryLabel = (cat: string) => {
+    switch (cat) {
+      case "ml":
+        return "AI & Machine Learning";
+      case "genai":
+        return "GenAI & Agents";
+      case "fullstack":
+        return "Full Stack Development";
+      case "python":
+        return "Python Projects";
+      case "tools":
+        return "Tools & Utilities";
+      case "academic":
+        return "Academic Projects";
+      default:
+        return cat.toUpperCase();
+    }
+  };
+
   return (
     <section id="work" className="py-24 border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-6 md:px-10">
@@ -981,16 +1020,11 @@ function FeaturedProjects() {
 
         <div className="space-y-10">
           {displayList.map((p) => {
-            const isExpanded = expandedId === p.id;
             const yearStr = p.timeline.split(" – ").pop() || "2025";
             return (
               <article
                 key={p.id}
-                className={`bg-[rgba(15,15,15,0.7)] backdrop-blur-md border rounded-[24px] overflow-hidden transition-all duration-500 ${
-                  isExpanded
-                    ? "border-gold shadow-[0_10px_40px_rgba(212, 160, 23,0.15)]"
-                    : "border-[rgba(212, 160, 23,0.15)] hover:border-gold/40 hover:shadow-lg"
-                }`}
+                className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border rounded-[24px] overflow-hidden transition-all duration-500 border-[rgba(212, 160, 23,0.15)] hover:border-gold/40 hover:shadow-lg"
               >
                 {/* Header Grid */}
                 <div className="grid lg:grid-cols-12 gap-6 p-6 lg:p-8 items-center">
@@ -1010,7 +1044,9 @@ function FeaturedProjects() {
                       <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
                         <span className="text-gold font-semibold">{yearStr}</span>
                         <span className="h-px w-8 bg-border" />
-                        <span>GitHub Repository</span>
+                        <span className="text-gold font-semibold uppercase tracking-wider text-[10px]">
+                          {getCategoryLabel(p.category)}
+                        </span>
                         {p.featured && (
                           <>
                             <span className="h-px w-8 bg-border" />
@@ -1024,7 +1060,9 @@ function FeaturedProjects() {
                         {p.title}
                       </h3>
                       <p className="text-sm text-gold font-medium mb-4">{p.subtitle}</p>
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-6">{p.desc}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-6 line-clamp-2 h-10">
+                        {p.desc}
+                      </p>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-4 mt-auto">
@@ -1045,75 +1083,12 @@ function FeaturedProjects() {
                       </div>
 
                       <button
-                        onClick={() => toggleExpand(p.id)}
-                        className="inline-flex items-center gap-1.5 text-xs text-gold uppercase tracking-wider font-semibold hover:opacity-80 transition-opacity cursor-pointer"
+                        onClick={() => setActiveStudy(p)}
+                        className="inline-flex items-center gap-1.5 text-xs text-gold uppercase tracking-wider font-semibold hover:opacity-85 transition-opacity cursor-pointer border border-gold/30 rounded-xl px-4 py-2 hover:bg-gold hover:text-black transition"
                       >
-                        {isExpanded ? "Hide Architecture" : "View Architecture"}
-                        {isExpanded ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
+                        View Case Study
+                        <ArrowUpRight className="h-4 w-4" />
                       </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expanded Details Pane */}
-                <div
-                  className={`grid grid-cols-1 lg:grid-cols-2 gap-8 px-6 lg:px-8 border-t border-border/40 bg-card/20 transition-all duration-500 overflow-hidden ${
-                    isExpanded
-                      ? "max-h-[800px] py-8 opacity-100"
-                      : "max-h-0 py-0 opacity-0 pointer-events-none"
-                  }`}
-                >
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-xs uppercase tracking-widest text-gold font-bold mb-2">
-                        Problem Statement
-                      </h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{p.problem}</p>
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs uppercase tracking-widest text-gold font-bold mb-2">
-                        Quantifiable Results
-                      </h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed bg-gold/5 border border-gold/10 p-4 rounded-xl font-medium text-foreground">
-                        {p.impact}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-xs uppercase tracking-widest text-gold font-bold mb-2">
-                        System Architecture
-                      </h4>
-                      <div className="relative pl-6 border-l border-gold/20 space-y-3">
-                        {p.workflow.map((step, idx) => (
-                          <div
-                            key={idx}
-                            className="relative text-xs text-muted-foreground leading-relaxed"
-                          >
-                            <span className="absolute -left-[31px] top-0 h-4.5 w-4.5 rounded-full bg-card border border-gold/40 flex items-center justify-center text-[9px] font-bold text-gold">
-                              {idx + 1}
-                            </span>
-                            {step}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="pt-4 flex flex-wrap items-center gap-4">
-                      <a
-                        href={p.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
-                      >
-                        Source Code <ArrowUpRight className="h-4 w-4" />
-                      </a>
                     </div>
                   </div>
                 </div>
@@ -1122,6 +1097,7 @@ function FeaturedProjects() {
           })}
         </div>
       </div>
+      {activeStudy && <CaseStudyModal study={activeStudy} onClose={() => setActiveStudy(null)} />}
     </section>
   );
 }
@@ -1240,8 +1216,10 @@ function ExperienceTimeline() {
 }
 
 function Certificates() {
+  const [activeCert, setActiveCert] = useState<(typeof certificates)[0] | null>(null);
+
   return (
-    <section className="py-24 border-t border-border bg-background">
+    <section id="certificates" className="py-24 border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-6 md:px-10">
         <p className="text-xs tracking-[0.3em] uppercase text-gold mb-4">Credentials</p>
         <h2 className="font-display text-5xl md:text-7xl mb-16">Certificates.</h2>
@@ -1271,24 +1249,27 @@ function Certificates() {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-bold text-foreground line-clamp-1">{c.name}</h3>
-                    <p className="text-xs text-gold font-medium mt-1">{c.issuer}</p>
+                    <span className="text-[10px] uppercase tracking-widest text-gold font-semibold">
+                      🏆 {c.category || "Certification"}
+                    </span>
+                    <h3 className="text-lg font-bold text-foreground mt-2 line-clamp-1">
+                      {c.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1">{c.issuer}</p>
                     <p className="text-[10px] text-muted-foreground mt-1">Issued: {c.year}</p>
                   </div>
                 </div>
 
                 <div className="flex gap-2.5 mt-6 border-t border-border/40 pt-4">
-                  <a
-                    href={c.fileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-1 text-center bg-gold/10 border border-gold/30 text-gold font-bold py-2 rounded-xl text-[10px] uppercase tracking-wider hover:bg-gold hover:text-white transition active:scale-95 cursor-pointer"
+                  <button
+                    onClick={() => setActiveCert(c)}
+                    className="flex-1 text-center bg-gold/10 border border-gold/30 text-gold font-bold py-2 rounded-xl text-[10px] uppercase tracking-wider hover:bg-gold hover:text-black transition active:scale-95 cursor-pointer"
                   >
-                    View
-                  </a>
+                    View Certificate
+                  </button>
                   <a
                     href={c.fileUrl}
-                    download
+                    download={`${c.name.replace(/\s+/g, "_")}_Certificate`}
                     className="flex-1 text-center border border-gold/30 text-gold font-bold py-2 rounded-xl text-[10px] uppercase tracking-wider hover:bg-gold hover:text-black transition active:scale-95 cursor-pointer"
                   >
                     Download
@@ -1299,6 +1280,10 @@ function Certificates() {
           })}
         </div>
       </div>
+
+      {activeCert && (
+        <CertificateModal certificate={activeCert} onClose={() => setActiveCert(null)} />
+      )}
     </section>
   );
 }
@@ -2012,13 +1997,13 @@ function Contact() {
     setDownloading(true);
     setTimeout(() => {
       setDownloading(false);
-      // Simulate file download
       const link = document.createElement("a");
-      link.href = "#"; // Placeholder for resume URL
+      link.href = "/resume/Dhivyadharshini_G_Resume.pdf";
       link.setAttribute("download", "Dhivyadharshini_G_Resume.pdf");
       document.body.appendChild(link);
-      alert("Dhivyadharshini_G_Resume.pdf download simulation triggered!");
-    }, 2000);
+      link.click();
+      document.body.removeChild(link);
+    }, 1500);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -2327,7 +2312,7 @@ function MobileAppLayout() {
   const [activeSection, setActiveSection] = useState("top");
 
   useEffect(() => {
-    const sections = ["top", "about", "skills", "work", "achievements", "contact"];
+    const sections = ["top", "about", "skills", "work", "certificates", "achievements", "contact"];
     const observers = sections.map((id) => {
       const el = document.getElementById(`mobile-${id}`);
       if (!el) return null;
@@ -2359,7 +2344,6 @@ function MobileAppLayout() {
         <MobileAbout />
         <MobileDomains />
         <MobileProjects />
-        <MobileCaseStudies />
         <MobileSkills />
         <MobileTimeline />
         <MobileCertificates />
@@ -2591,7 +2575,7 @@ function MobileDomains() {
 }
 
 function MobileProjects() {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [activeStudy, setActiveStudy] = useState<MappedProject | null>(null);
   const [activeCategory, setActiveCategory] = useState("all");
 
   const reposQuery = useQuery({
@@ -2600,10 +2584,6 @@ function MobileProjects() {
     retry: 2,
     staleTime: 1000 * 60 * 5,
   });
-
-  const toggleExpand = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
-  };
 
   if (reposQuery.isLoading) {
     return (
@@ -2660,6 +2640,25 @@ function MobileProjects() {
     { id: "academic", label: "Academic" },
   ];
 
+  const getCategoryLabel = (cat: string) => {
+    switch (cat) {
+      case "ml":
+        return "AI & ML";
+      case "genai":
+        return "GenAI";
+      case "fullstack":
+        return "Full Stack";
+      case "python":
+        return "Python";
+      case "tools":
+        return "Tools";
+      case "academic":
+        return "Academic";
+      default:
+        return cat.toUpperCase();
+    }
+  };
+
   return (
     <section id="mobile-work" className="scroll-mt-16 space-y-6">
       <div>
@@ -2685,16 +2684,11 @@ function MobileProjects() {
 
       <div className="space-y-6">
         {displayList.map((p) => {
-          const isExpanded = expandedId === p.id;
           const yearStr = p.timeline.split(" – ").pop() || "2025";
           return (
             <article
               key={p.id}
-              className={`bg-[rgba(15,15,15,0.75)] backdrop-blur-lg border rounded-3xl overflow-hidden transition-all duration-400 ${
-                isExpanded
-                  ? "border-gold shadow-[0_10px_25px_rgba(212, 160, 23,0.15)]"
-                  : "border-[rgba(212, 160, 23,0.15)]"
-              }`}
+              className="bg-[rgba(15,15,15,0.75)] backdrop-blur-lg border rounded-3xl overflow-hidden transition-all duration-400 border-[rgba(212, 160, 23,0.15)]"
             >
               <div className="relative aspect-[16/10] overflow-hidden">
                 <ProjectImage
@@ -2716,14 +2710,22 @@ function MobileProjects() {
               </div>
 
               <div className="p-5">
-                <p className="text-[10px] text-gold font-semibold uppercase tracking-wider mb-1">
-                  {p.subtitle}
-                </p>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] text-gold font-semibold uppercase tracking-wider">
+                    {getCategoryLabel(p.category)}
+                  </span>
+                  <span className="text-muted-foreground text-xs font-semibold">·</span>
+                  <p className="text-[10px] text-muted-foreground uppercase font-medium">
+                    {p.subtitle}
+                  </p>
+                </div>
                 <h3 className="text-xl font-bold text-foreground mb-3 leading-snug">{p.title}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-4">{p.desc}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-4 line-clamp-2 h-10">
+                  {p.desc}
+                </p>
 
                 <div className="flex flex-wrap gap-1.5 mb-5">
-                  {p.tech.map((tag) => (
+                  {p.tech.slice(0, 3).map((tag) => (
                     <span
                       key={tag}
                       className="text-[9px] border border-gold/15 bg-gold/5 rounded-full px-2.5 py-0.5 text-muted-foreground"
@@ -2731,72 +2733,29 @@ function MobileProjects() {
                       {tag}
                     </span>
                   ))}
+                  {p.tech.length > 3 && (
+                    <span className="text-[9px] border border-border rounded-full px-2 py-0.5 text-muted-foreground">
+                      +{p.tech.length - 3} more
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between border-t border-border/40 pt-4">
-                  <a
-                    href={p.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-gold tracking-wider"
-                  >
-                    Source Code <ArrowUpRight className="h-3.5 w-3.5" />
-                  </a>
+                  <span className="text-[10px] text-muted-foreground font-semibold">{yearStr}</span>
 
                   <button
-                    onClick={() => toggleExpand(p.id)}
-                    className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-gold tracking-wider cursor-pointer"
+                    onClick={() => setActiveStudy(p)}
+                    className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-gold tracking-wider cursor-pointer border border-gold/30 rounded-lg px-3 py-1.5 hover:bg-gold hover:text-black transition"
                   >
-                    {isExpanded ? "Hide Specs" : "View Specs"}
-                    {isExpanded ? (
-                      <ChevronUp className="h-3.5 w-3.5" />
-                    ) : (
-                      <ChevronDown className="h-3.5 w-3.5" />
-                    )}
+                    View Case Study <ArrowUpRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
-
-              {isExpanded && (
-                <div className="px-5 pb-5 border-t border-border/20 bg-card/10 space-y-4 pt-4 animate-reveal">
-                  <div>
-                    <h4 className="text-[9px] uppercase tracking-wider text-gold font-bold mb-1">
-                      Problem Statement
-                    </h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{p.problem}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-[9px] uppercase tracking-wider text-gold font-bold mb-1">
-                      System Architecture
-                    </h4>
-                    <div className="pl-4 border-l border-gold/20 space-y-2 mt-2">
-                      {p.workflow.map((step, idx) => (
-                        <div
-                          key={idx}
-                          className="relative text-xs text-muted-foreground leading-relaxed"
-                        >
-                          <span className="absolute -left-[23px] top-0 h-4 w-4 rounded-full bg-card border border-gold/30 flex items-center justify-center text-[8px] font-bold text-gold">
-                            {idx + 1}
-                          </span>
-                          {step}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-[9px] uppercase tracking-wider text-gold font-bold mb-1">
-                      Results
-                    </h4>
-                    <p className="text-xs text-foreground bg-gold/5 border border-gold/15 p-3 rounded-xl font-medium">
-                      {p.impact}
-                    </p>
-                  </div>
-                </div>
-              )}
             </article>
           );
         })}
       </div>
+      {activeStudy && <CaseStudyModal study={activeStudy} onClose={() => setActiveStudy(null)} />}
     </section>
   );
 }
@@ -2897,8 +2856,10 @@ function MobileTimeline() {
 }
 
 function MobileCertificates() {
+  const [activeCert, setActiveCert] = useState<(typeof certificates)[0] | null>(null);
+
   return (
-    <section className="space-y-6">
+    <section id="mobile-certificates" className="scroll-mt-16 space-y-6">
       <div>
         <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Credentials</p>
         <h2 className="font-display text-3xl font-bold mt-1">Certificates.</h2>
@@ -2929,24 +2890,25 @@ function MobileCertificates() {
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-foreground">{c.name}</h3>
-                  <p className="text-xs text-gold font-medium mt-0.5">{c.issuer}</p>
+                  <span className="text-[9px] uppercase tracking-widest text-gold font-semibold">
+                    🏆 {c.category || "Certification"}
+                  </span>
+                  <h3 className="text-base font-bold text-foreground mt-1.5">{c.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{c.issuer}</p>
                   <p className="text-[10px] text-muted-foreground mt-1">Issued: {c.year}</p>
                 </div>
               </div>
 
               <div className="flex gap-2 mt-4 border-t border-border/40 pt-4">
-                <a
-                  href={c.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex-1 text-center bg-gold/10 border border-gold/30 text-gold font-bold py-2 rounded-xl text-[9px] uppercase tracking-wider hover:bg-gold hover:text-white transition active:scale-95 cursor-pointer"
+                <button
+                  onClick={() => setActiveCert(c)}
+                  className="flex-1 text-center bg-gold/10 border border-gold/30 text-gold font-bold py-2 rounded-xl text-[9px] uppercase tracking-wider hover:bg-gold hover:text-black transition active:scale-95 cursor-pointer"
                 >
                   View
-                </a>
+                </button>
                 <a
                   href={c.fileUrl}
-                  download
+                  download={`${c.name.replace(/\s+/g, "_")}_Certificate`}
                   className="flex-1 text-center border border-gold/30 text-gold font-bold py-2 rounded-xl text-[9px] uppercase tracking-wider hover:bg-gold hover:text-black transition active:scale-95 cursor-pointer"
                 >
                   Download
@@ -2956,6 +2918,10 @@ function MobileCertificates() {
           );
         })}
       </div>
+
+      {activeCert && (
+        <CertificateModal certificate={activeCert} onClose={() => setActiveCert(null)} />
+      )}
     </section>
   );
 }
@@ -3270,11 +3236,12 @@ function MobileContact() {
     setTimeout(() => {
       setDownloading(false);
       const link = document.createElement("a");
-      link.href = "#";
+      link.href = "/resume/Dhivyadharshini_G_Resume.pdf";
       link.setAttribute("download", "Dhivyadharshini_G_Resume.pdf");
       document.body.appendChild(link);
-      alert("Dhivyadharshini_G_Resume.pdf download simulation triggered!");
-    }, 2000);
+      link.click();
+      document.body.removeChild(link);
+    }, 1500);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -3531,7 +3498,7 @@ function MobileBottomNav({
     { id: "about", label: "About", icon: User },
     { id: "skills", label: "Skills", icon: Zap },
     { id: "work", label: "Projects", icon: Briefcase },
-    { id: "achievements", label: "Awards", icon: Trophy },
+    { id: "certificates", label: "Certificates", icon: Award },
     { id: "contact", label: "Contact", icon: Phone },
   ];
 
@@ -3566,5 +3533,87 @@ function MobileBottomNav({
         );
       })}
     </nav>
+  );
+}
+
+interface CertificateModalProps {
+  certificate: (typeof certificates)[0];
+  onClose: () => void;
+}
+
+function CertificateModal({ certificate, onClose }: CertificateModalProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
+      <div className="bg-[rgba(15,15,15,0.96)] border border-[rgba(212,160,23,0.25)] rounded-[28px] max-w-3xl w-full overflow-hidden relative shadow-2xl animate-reveal flex flex-col">
+        {/* Header */}
+        <div className="border-b border-border/40 p-5 flex items-center justify-between">
+          <div>
+            <span className="text-[10px] uppercase tracking-widest text-gold font-bold">
+              {certificate.category || "Certification"}
+            </span>
+            <h3 className="font-display text-xl md:text-2xl text-foreground mt-1">
+              {certificate.name}
+            </h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground transition cursor-pointer p-2 hover:bg-gold/10 rounded-full"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Image Viewer */}
+        <div className="p-6 flex justify-center bg-black/40 border-b border-border/40 max-h-[60vh] overflow-auto">
+          <img
+            src={certificate.image}
+            alt={certificate.name}
+            className="max-h-[50vh] object-contain rounded-lg border border-border/30"
+          />
+        </div>
+
+        {/* Footer Info & Actions */}
+        <div className="p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div>
+              <p className="text-muted-foreground">
+                <strong className="text-foreground">Issued by:</strong> {certificate.issuer}
+              </p>
+              {certificate.achievement && (
+                <p className="text-muted-foreground mt-1">
+                  <strong className="text-foreground">Achievement:</strong>{" "}
+                  {certificate.achievement}
+                </p>
+              )}
+            </div>
+            <div className="text-gold font-semibold shrink-0">Year: {certificate.year}</div>
+          </div>
+
+          <div className="flex flex-wrap gap-3 justify-end pt-2">
+            <a
+              href={certificate.image}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 border border-border/60 hover:border-gold/40 text-foreground hover:text-gold font-bold rounded-xl text-[10px] uppercase tracking-wider transition flex items-center gap-1.5 active:scale-95 cursor-pointer"
+            >
+              View Full Size <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href={certificate.fileUrl}
+              download={`${certificate.name.replace(/\s+/g, "_")}_Certificate`}
+              className="px-4 py-2 bg-gold text-primary-foreground font-bold rounded-xl text-[10px] uppercase tracking-wider hover:opacity-90 transition flex items-center gap-1.5 active:scale-95 cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5" /> Download Certificate
+            </a>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-card/60 border border-border/60 hover:bg-gold/10 hover:text-gold text-foreground font-bold rounded-xl text-[10px] uppercase tracking-wider transition active:scale-95 cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

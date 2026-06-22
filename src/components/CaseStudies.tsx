@@ -333,7 +333,7 @@ interface ModalProps {
   onClose: () => void;
 }
 
-function CaseStudyModal({ study, onClose }: ModalProps) {
+export function CaseStudyModal({ study, onClose }: ModalProps) {
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = () => {
@@ -341,10 +341,11 @@ function CaseStudyModal({ study, onClose }: ModalProps) {
     setTimeout(() => {
       setDownloading(false);
       const link = document.createElement("a");
-      link.href = "#";
+      link.href = "/resume/Dhivyadharshini_G_Resume.pdf";
       link.setAttribute("download", `${study.id}_case_study.pdf`);
       document.body.appendChild(link);
-      alert(`Download summary PDF for ${study.title} case study triggered!`);
+      link.click();
+      document.body.removeChild(link);
     }, 1500);
   };
 
@@ -357,12 +358,20 @@ function CaseStudyModal({ study, onClose }: ModalProps) {
             <h3 className="font-display text-2xl md:text-3xl text-foreground">{study.title}</h3>
             <p className="text-xs text-gold font-medium mt-1">Technical Case Study</p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition cursor-pointer p-2 hover:bg-gold/10 rounded-full"
-          >
-            <X className="h-6 w-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="text-muted-foreground hover:text-gold flex items-center gap-1.5 transition text-xs font-semibold uppercase tracking-wider cursor-pointer mr-4"
+            >
+              ← Back to Projects
+            </button>
+            <button
+              onClick={onClose}
+              className="text-muted-foreground hover:text-foreground transition cursor-pointer p-2 hover:bg-gold/10 rounded-full"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
         </div>
 
         {/* Modal Body */}

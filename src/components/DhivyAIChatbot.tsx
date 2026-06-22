@@ -68,14 +68,41 @@ export default function DhivyAIChatbot() {
     if (
       cleanQuery.includes("resume") ||
       cleanQuery.includes("cv") ||
-      cleanQuery.includes("download")
+      (cleanQuery.includes("download") && !cleanQuery.includes("project"))
     ) {
       setTimeout(() => {
-        const link = document.createElement("a");
-        link.href = "#";
-        link.setAttribute("download", "Dhivyadharshini_G_Resume.pdf");
-        document.body.appendChild(link);
-        alert("Dhivyadharshini_G_Resume.pdf download simulation triggered!");
+        fetch("/resume/Dhivyadharshini_G_Resume.pdf", { method: "HEAD" })
+          .then((res) => {
+            if (res.ok) {
+              const link = document.createElement("a");
+              link.href = "/resume/Dhivyadharshini_G_Resume.pdf";
+              link.setAttribute("download", "Dhivyadharshini_G_Resume.pdf");
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            } else {
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: Math.random().toString(),
+                  sender: "bot",
+                  text: "Resume file not available. Please contact me directly.",
+                  timestamp: new Date(),
+                },
+              ]);
+            }
+          })
+          .catch(() => {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: Math.random().toString(),
+                sender: "bot",
+                text: "Resume file not available. Please contact me directly.",
+                timestamp: new Date(),
+              },
+            ]);
+          });
       }, 1000);
       return;
     }
@@ -191,7 +218,7 @@ export default function DhivyAIChatbot() {
       return KNOWLEDGE_BASE.github;
     }
     if (q.includes("resume") || q.includes("cv") || q.includes("download")) {
-      return "I've triggered the simulated PDF resume download for you. Check your browser downloads!";
+      return "Your resume is downloading now.";
     }
     if (q.includes("hello") || q.includes("hi") || q.includes("hey") || q.includes("greetings")) {
       return "Hello! How can I help you explore Dhivyadharshini's AI/ML Engineer profile?";
