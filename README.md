@@ -93,6 +93,7 @@ Implemented Multi-Agent AI Social Media Manager using Gemini and Telegram.
 Built Flask-based RAG Assistant using local LLMs (Ollama).
 Analyzed multi-year retail datasets to generate business insights.
 🚀 Featured Projects
+
 1. RAG-Based Business Intelligence Assistant
 
 A Retrieval-Augmented Generation system designed to answer analytical business queries using local Large Language Models.
@@ -108,8 +109,7 @@ Python
 Flask
 Ollama
 RAG
-REST APIs
-2. Multi-Agent AI Social Media Manager
+REST APIs 2. Multi-Agent AI Social Media Manager
 
 An AI-powered multi-agent system for automated content planning and social media workflow management.
 

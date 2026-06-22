@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import emailjs from "@emailjs/browser";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -140,13 +141,14 @@ const projects = [
 
 const techSkills = [
   // Programming
-  { name: "Python", category: "programming", level: "Expert" },
-  { name: "SQL", category: "programming", level: "Advanced" },
+  { name: "Python", category: "lang", level: "Expert" },
+  { name: "SQL", category: "lang", level: "Advanced" },
+  { name: "Java", category: "lang", level: "Advanced" },
   // AI / ML
-  { name: "Machine Learning", category: "ai-ml", level: "Advanced" },
-  { name: "NLP", category: "ai-ml", level: "Advanced" },
-  { name: "Naive Bayes", category: "ai-ml", level: "Expert" },
-  { name: "Recommendation Systems", category: "ai-ml", level: "Intermediate" },
+  { name: "Machine Learning", category: "ml", level: "Advanced" },
+  { name: "NLP", category: "ml", level: "Advanced" },
+  { name: "Naive Bayes", category: "ml", level: "Expert" },
+  { name: "Recommendation Systems", category: "ml", level: "Intermediate" },
   // GenAI / Agentic AI
   { name: "RAG", category: "genai", level: "Expert" },
   { name: "Multi-Agent Systems", category: "genai", level: "Expert" },
@@ -155,14 +157,14 @@ const techSkills = [
   { name: "Ollama", category: "genai", level: "Expert" },
   { name: "Prompt Engineering", category: "genai", level: "Expert" },
   // Frameworks & Tools
-  { name: "Flask", category: "tools", level: "Advanced" },
-  { name: "Streamlit", category: "tools", level: "Expert" },
-  { name: "LangChain", category: "tools", level: "Advanced" },
-  { name: "Git", category: "tools", level: "Advanced" },
+  { name: "Flask", category: "tool", level: "Advanced" },
+  { name: "Streamlit", category: "tool", level: "Expert" },
+  { name: "LangChain", category: "tool", level: "Advanced" },
+  { name: "Git", category: "tool", level: "Advanced" },
   // APIs
-  { name: "REST APIs", category: "apis", level: "Advanced" },
-  { name: "Telegram Bot API", category: "apis", level: "Expert" },
-  { name: "Google Calendar API", category: "apis", level: "Intermediate" },
+  { name: "REST APIs", category: "tool", level: "Advanced" },
+  { name: "Telegram Bot API", category: "tool", level: "Expert" },
+  { name: "Google Calendar API", category: "tool", level: "Intermediate" },
 ];
 
 const aiDomains = [
@@ -289,33 +291,125 @@ function DesktopLayout() {
 }
 
 function Nav() {
+  const [activeSection, setActiveSection] = useState("top");
+
+  useEffect(() => {
+    const sections = ["top", "about", "work", "experience", "skills", "contact"];
+    const observers = sections.map((id) => {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setActiveSection(id);
+          }
+        },
+        { threshold: 0.25, rootMargin: "-20% 0px -60% 0px" },
+      );
+      observer.observe(el);
+      return { observer, el };
+    });
+
+    return () => {
+      observers.forEach((obs) => {
+        if (obs) obs.observer.unobserve(obs.el);
+      });
+    };
+  }, []);
+
+  const scrollToSection = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+      window.history.pushState(null, "", id === "top" ? "/" : `#${id}`);
+      setActiveSection(id);
+    }
+  };
+
   return (
     <header className="fixed top-0 z-50 w-full backdrop-blur-md bg-background/70 border-b border-border">
       <div className="mx-auto max-w-7xl px-6 md:px-10 h-16 flex items-center justify-between">
-        <a href="#top" className="flex items-center gap-2 font-display text-xl">
+        <a
+          href="/"
+          onClick={(e) => scrollToSection("top", e)}
+          className="flex items-center gap-2 font-display text-xl cursor-pointer"
+        >
           <span className="inline-block h-2 w-2 rounded-full bg-gold animate-pulse" />
           Dhivyadharshini<span className="text-gold">.</span>G
         </a>
-        <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          <a href="#about" className="hover:text-foreground transition">
+        <nav className="hidden md:flex items-center gap-8 text-sm">
+          <a
+            href="/"
+            onClick={(e) => scrollToSection("top", e)}
+            className={`transition-colors duration-300 ${
+              activeSection === "top"
+                ? "text-gold font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Home
+          </a>
+          <a
+            href="#about"
+            onClick={(e) => scrollToSection("about", e)}
+            className={`transition-colors duration-300 ${
+              activeSection === "about"
+                ? "text-gold font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
             About
           </a>
-          <a href="#work" className="hover:text-foreground transition">
+          <a
+            href="#work"
+            onClick={(e) => scrollToSection("work", e)}
+            className={`transition-colors duration-300 ${
+              activeSection === "work"
+                ? "text-gold font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
             Projects
           </a>
-          <a href="#experience" className="hover:text-foreground transition">
+          <a
+            href="#experience"
+            onClick={(e) => scrollToSection("experience", e)}
+            className={`transition-colors duration-300 ${
+              activeSection === "experience"
+                ? "text-gold font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
             Experience
           </a>
-          <a href="#skills" className="hover:text-foreground transition">
+          <a
+            href="#skills"
+            onClick={(e) => scrollToSection("skills", e)}
+            className={`transition-colors duration-300 ${
+              activeSection === "skills"
+                ? "text-gold font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
             Skills
           </a>
-          <a href="#contact" className="hover:text-foreground transition">
+          <a
+            href="#contact"
+            onClick={(e) => scrollToSection("contact", e)}
+            className={`transition-colors duration-300 ${
+              activeSection === "contact"
+                ? "text-gold font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
             Contact
           </a>
         </nav>
         <a
           href="#contact"
-          className="group inline-flex items-center gap-1.5 rounded-full border border-gold/40 px-4 py-1.5 text-sm text-gold hover:bg-gold hover:text-primary-foreground transition"
+          onClick={(e) => scrollToSection("contact", e)}
+          className="group inline-flex items-center gap-1.5 rounded-full border border-gold/40 px-4 py-1.5 text-sm text-gold hover:bg-gold hover:text-primary-foreground transition cursor-pointer"
         >
           Available for hire
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-gold group-hover:bg-primary-foreground" />
@@ -1013,27 +1107,20 @@ function TechStackGrid() {
 
         {/* Tech Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {techSkills.map((s) => {
-            const isHighlighted = activeFilter === "all" || s.category === activeFilter;
-            return (
-              <div
-                key={s.name}
-                className={`bg-[rgba(15,15,15,0.7)] backdrop-blur-sm border rounded-2xl p-6 transition-all duration-300 relative group overflow-hidden ${
-                  isHighlighted
-                    ? "border-[rgba(212, 160, 23,0.2)] shadow-md scale-100 opacity-100 hover:border-gold/50 hover:shadow-[0_0_20px_rgba(212, 160, 23,0.15)]"
-                    : "border-border/30 opacity-40 scale-95 pointer-events-none"
-                }`}
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-gold/5 to-transparent rounded-bl-full pointer-events-none group-hover:from-gold/10 transition-colors" />
-                <p className="text-xs text-gold uppercase tracking-wider mb-2 font-medium">
-                  {s.level}
-                </p>
-                <h3 className="text-lg font-semibold text-foreground group-hover:translate-x-1 transition-transform">
-                  {s.name}
-                </h3>
-              </div>
-            );
-          })}
+          {filteredSkills.map((s) => (
+            <div
+              key={s.name}
+              className="bg-[rgba(15,15,15,0.7)] backdrop-blur-sm border border-[rgba(212, 160, 23,0.2)] rounded-2xl p-6 transition-all duration-300 relative group overflow-hidden shadow-md scale-100 opacity-100 hover:border-gold/50 hover:shadow-[0_0_20px_rgba(212, 160, 23,0.15)]"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-gold/5 to-transparent rounded-bl-full pointer-events-none group-hover:from-gold/10 transition-colors" />
+              <p className="text-xs text-gold uppercase tracking-wider mb-2 font-medium">
+                {s.level}
+              </p>
+              <h3 className="text-lg font-semibold text-foreground group-hover:translate-x-1 transition-transform">
+                {s.name}
+              </h3>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -1042,7 +1129,10 @@ function TechStackGrid() {
 
 function ExperienceTimeline() {
   return (
-    <section className="py-24 border-t border-border bg-background relative overflow-hidden">
+    <section
+      id="experience"
+      className="py-24 border-t border-border bg-background relative overflow-hidden"
+    >
       <div className="mx-auto max-w-7xl px-6 md:px-10">
         <p className="text-xs tracking-[0.3em] uppercase text-gold mb-4">Journey</p>
         <h2 className="font-display text-5xl md:text-7xl mb-16">Timeline.</h2>
@@ -1190,21 +1280,350 @@ function AwardsShowcase() {
   );
 }
 
+interface GitHubProfile {
+  login: string;
+  avatar_url: string;
+  bio: string | null;
+  public_repos: number;
+  followers: number;
+  following: number;
+  name: string | null;
+}
+
+interface GitHubRepo {
+  stargazers_count: number;
+  language: string | null;
+}
+
+interface ContributionDay {
+  date: string;
+  count: number;
+  level: number;
+}
+
+interface GitHubContributions {
+  total: Record<string, number>;
+  contributions: ContributionDay[];
+}
+
+interface GitHubEvent {
+  id: string;
+  type: string;
+  repo: {
+    name: string;
+  };
+  payload: {
+    commits?: Array<{
+      message: string;
+    }>;
+    action?: string;
+    ref?: string;
+  };
+  created_at: string;
+}
+
+const GITHUB_USERNAME =
+  import.meta.env.VITE_GITHUB_USERNAME ||
+  import.meta.env.GITHUB_USERNAME ||
+  "DhivyadharshiniGopalakrishnan";
+const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN || import.meta.env.GITHUB_TOKEN || "";
+
+const getHeaders = () => {
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github.v3+json",
+  };
+  if (GITHUB_TOKEN) {
+    headers["Authorization"] = `Bearer ${GITHUB_TOKEN}`;
+  }
+  return headers;
+};
+
+const fetchGitHubProfile = async (): Promise<GitHubProfile> => {
+  const res = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) {
+    if (res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0") {
+      throw new Error("GitHub API rate limit exceeded. Please try again later.");
+    }
+    throw new Error(`Failed to fetch GitHub profile: ${res.statusText}`);
+  }
+  return res.json();
+};
+
+const fetchGitHubRepos = async (): Promise<GitHubRepo[]> => {
+  const res = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=100`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) {
+    if (res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0") {
+      throw new Error("GitHub API rate limit exceeded. Please try again later.");
+    }
+    throw new Error(`Failed to fetch GitHub repositories: ${res.statusText}`);
+  }
+  return res.json();
+};
+
+const fetchGitHubPRsCount = async (): Promise<number> => {
+  const res = await fetch(
+    `https://api.github.com/search/issues?q=author:${GITHUB_USERNAME}+type:pr+is:merged`,
+    {
+      headers: getHeaders(),
+    },
+  );
+  if (!res.ok) {
+    if (res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0") {
+      throw new Error("GitHub API rate limit exceeded. Please try again later.");
+    }
+    throw new Error(`Failed to fetch PRs count: ${res.statusText}`);
+  }
+  const json = await res.json();
+  return json.total_count || 0;
+};
+
+const fetchGitHubIssuesCount = async (): Promise<number> => {
+  const res = await fetch(
+    `https://api.github.com/search/issues?q=author:${GITHUB_USERNAME}+type:issue`,
+    {
+      headers: getHeaders(),
+    },
+  );
+  if (!res.ok) {
+    if (res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0") {
+      throw new Error("GitHub API rate limit exceeded. Please try again later.");
+    }
+    throw new Error(`Failed to fetch issues count: ${res.statusText}`);
+  }
+  const json = await res.json();
+  return json.total_count || 0;
+};
+
+const fetchGitHubContributions = async (): Promise<GitHubContributions> => {
+  if (GITHUB_TOKEN) {
+    try {
+      const query = `
+        query($username: String!) {
+          user(login: $username) {
+            contributionsCollection {
+              contributionCalendar {
+                totalContributions
+                weeks {
+                  contributionDays {
+                    contributionCount
+                    date
+                    contributionLevel
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+      const res = await fetch("https://api.github.com/graphql", {
+        method: "POST",
+        headers: {
+          ...getHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query,
+          variables: { username: GITHUB_USERNAME },
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data?.user?.contributionsCollection?.contributionCalendar) {
+          const calendar = json.data.user.contributionsCollection.contributionCalendar;
+          const contributions: ContributionDay[] = [];
+          calendar.weeks.forEach(
+            (week: {
+              contributionDays: Array<{
+                date: string;
+                contributionCount: number;
+                contributionLevel: string;
+              }>;
+            }) => {
+              week.contributionDays.forEach(
+                (day: { date: string; contributionCount: number; contributionLevel: string }) => {
+                  let level = 0;
+                  if (day.contributionLevel === "FIRST_QUARTILE") level = 1;
+                  else if (day.contributionLevel === "SECOND_QUARTILE") level = 2;
+                  else if (day.contributionLevel === "THIRD_QUARTILE") level = 3;
+                  else if (day.contributionLevel === "FOURTH_QUARTILE") level = 4;
+                  else if (day.contributionLevel === "NONE") level = 0;
+
+                  contributions.push({
+                    date: day.date,
+                    count: day.contributionCount,
+                    level,
+                  });
+                },
+              );
+            },
+          );
+          return {
+            total: {
+              year: calendar.totalContributions,
+            },
+            contributions,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("GraphQL contributions fetch failed, falling back to community API:", e);
+    }
+  }
+
+  const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${GITHUB_USERNAME}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch contribution calendar: ${res.statusText}`);
+  }
+  return res.json();
+};
+
+const fetchGitHubEvents = async (): Promise<GitHubEvent[]> => {
+  const res = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/events?per_page=10`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) {
+    if (res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0") {
+      throw new Error("GitHub API rate limit exceeded. Please try again later.");
+    }
+    throw new Error(`Failed to fetch GitHub events: ${res.statusText}`);
+  }
+  return res.json();
+};
+
+const calculateStreak = (contributions: ContributionDay[]) => {
+  const sorted = [...contributions].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+  let currentStreak = 0;
+  let longestStreak = 0;
+  let runningStreak = 0;
+
+  const todayStr = new Date().toISOString().split("T")[0];
+  const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+
+  const activeDays = sorted.filter((c) => c.date <= todayStr);
+
+  activeDays.forEach((day) => {
+    if (day.count > 0) {
+      runningStreak++;
+      if (runningStreak > longestStreak) {
+        longestStreak = runningStreak;
+      }
+    } else {
+      runningStreak = 0;
+    }
+  });
+
+  const todayContribution = activeDays.find((d) => d.date === todayStr);
+  const yesterdayContribution = activeDays.find((d) => d.date === yesterdayStr);
+
+  if (todayContribution && todayContribution.count > 0) {
+    currentStreak = runningStreak;
+  } else if (yesterdayContribution && yesterdayContribution.count > 0) {
+    let tempStreak = 0;
+    for (let i = activeDays.length - 2; i >= 0; i--) {
+      if (activeDays[i].count > 0) {
+        tempStreak++;
+      } else {
+        break;
+      }
+    }
+    currentStreak = tempStreak + 1;
+  } else {
+    currentStreak = 0;
+  }
+
+  return { currentStreak, longestStreak };
+};
+
+const getTopLanguages = (repos: GitHubRepo[]) => {
+  const counts: Record<string, number> = {};
+  repos.forEach((repo) => {
+    if (repo.language) {
+      counts[repo.language] = (counts[repo.language] || 0) + 1;
+    }
+  });
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([lang]) => lang);
+};
+
+const formatGitHubEvent = (event: GitHubEvent) => {
+  const dateStr = new Date(event.created_at).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const repoName = event.repo.name.replace(`${GITHUB_USERNAME}/`, "");
+  switch (event.type) {
+    case "PushEvent": {
+      const commitCount = event.payload.commits?.length || 0;
+      const commitMsg = event.payload.commits?.[0]?.message || "";
+      const commitDetails = commitMsg ? ` ("${commitMsg.split("\n")[0]}")` : "";
+      return `Pushed ${commitCount} commit${commitCount === 1 ? "" : "s"} to ${repoName}${commitDetails} on ${dateStr}`;
+    }
+    case "PullRequestEvent": {
+      const prAction = event.payload.action || "interacted with";
+      return `${prAction.charAt(0).toUpperCase() + prAction.slice(1)} PR in ${repoName} on ${dateStr}`;
+    }
+    case "IssuesEvent": {
+      const issueAction = event.payload.action || "interacted with";
+      return `${issueAction.charAt(0).toUpperCase() + issueAction.slice(1)} issue in ${repoName} on ${dateStr}`;
+    }
+    case "CreateEvent":
+      return `Created repo/branch ${repoName} on ${dateStr}`;
+    case "WatchEvent":
+      return `Starred ${repoName} on ${dateStr}`;
+    default:
+      return `Activity in ${repoName} on ${dateStr}`;
+  }
+};
+
 function GitHubDashboard() {
-  // Generate a grid of days. 35 columns * 7 days = 245 squares.
-  const squares = Array.from({ length: 245 }, (_, i) => {
-    const dayOfWeek = i % 7;
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    let seed = Math.random();
-    if (isWeekend) seed *= 0.4;
+  const profileQuery = useQuery({
+    queryKey: ["githubProfile", GITHUB_USERNAME],
+    queryFn: fetchGitHubProfile,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
 
-    let level = 0;
-    if (seed > 0.85) level = 4;
-    else if (seed > 0.65) level = 3;
-    else if (seed > 0.4) level = 2;
-    else if (seed > 0.15) level = 1;
+  const reposQuery = useQuery({
+    queryKey: ["githubRepos", GITHUB_USERNAME],
+    queryFn: fetchGitHubRepos,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
 
-    return level;
+  const prsQuery = useQuery({
+    queryKey: ["githubPRsCount", GITHUB_USERNAME],
+    queryFn: fetchGitHubPRsCount,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const issuesQuery = useQuery({
+    queryKey: ["githubIssuesCount", GITHUB_USERNAME],
+    queryFn: fetchGitHubIssuesCount,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const contributionsQuery = useQuery({
+    queryKey: ["githubContributions", GITHUB_USERNAME],
+    queryFn: fetchGitHubContributions,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const eventsQuery = useQuery({
+    queryKey: ["githubEvents", GITHUB_USERNAME],
+    queryFn: fetchGitHubEvents,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
   });
 
   const getGoldColor = (level: number) => {
@@ -1222,6 +1641,85 @@ function GitHubDashboard() {
     }
   };
 
+  const refetchAll = () => {
+    profileQuery.refetch();
+    reposQuery.refetch();
+    prsQuery.refetch();
+    issuesQuery.refetch();
+    contributionsQuery.refetch();
+    eventsQuery.refetch();
+  };
+
+  const isError =
+    profileQuery.isError ||
+    reposQuery.isError ||
+    prsQuery.isError ||
+    issuesQuery.isError ||
+    contributionsQuery.isError;
+  const errorMsg =
+    (profileQuery.error as Error)?.message ||
+    (reposQuery.error as Error)?.message ||
+    (prsQuery.error as Error)?.message ||
+    (issuesQuery.error as Error)?.message ||
+    (contributionsQuery.error as Error)?.message ||
+    "An error occurred while fetching GitHub data.";
+
+  const isLoading =
+    profileQuery.isLoading ||
+    reposQuery.isLoading ||
+    prsQuery.isLoading ||
+    issuesQuery.isLoading ||
+    contributionsQuery.isLoading;
+
+  const profile = profileQuery.data;
+  const repos = reposQuery.data || [];
+  const contributions = contributionsQuery.data;
+  const events = eventsQuery.data || [];
+  const prsMerged = prsQuery.data || 0;
+  const issuesCreated = issuesQuery.data || 0;
+
+  const totalRepos = profile?.public_repos || 0;
+  const followers = profile?.followers || 0;
+  const following = profile?.following || 0;
+  const avatarUrl = profile?.avatar_url || "";
+  const bioText = profile?.bio || "AI / ML Engineer & Open Source Contributor";
+
+  const starsGained = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+
+  let totalCommits = 0;
+  if (contributions?.total) {
+    totalCommits = Object.values(contributions.total).reduce((sum, val) => sum + val, 0);
+  }
+  if (totalCommits === 0 && contributions?.contributions) {
+    totalCommits = contributions.contributions.reduce((sum, day) => sum + day.count, 0);
+  }
+
+  const streak = contributions?.contributions
+    ? calculateStreak(contributions.contributions)
+    : { currentStreak: 0, longestStreak: 0 };
+
+  const topLanguages = getTopLanguages(repos);
+  const recentEvents = events.map(formatGitHubEvent).filter(Boolean);
+
+  // Generate a grid of days. 35 columns * 7 days = 245 squares.
+  const contributionsList = contributions?.contributions
+    ? [...contributions.contributions].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      )
+    : [];
+
+  const calendarSquares = contributionsList.slice(-245);
+  const paddedSquares = [...calendarSquares];
+  while (paddedSquares.length < 245) {
+    paddedSquares.unshift({
+      date: new Date(new Date(paddedSquares[0]?.date || Date.now()).getTime() - 86400000)
+        .toISOString()
+        .split("T")[0],
+      count: 0,
+      level: 0,
+    });
+  }
+
   return (
     <section className="py-24 border-t border-border bg-background relative overflow-hidden">
       <div className="mx-auto max-w-7xl px-6 md:px-10">
@@ -1229,80 +1727,174 @@ function GitHubDashboard() {
         <h2 className="font-display text-5xl md:text-7xl mb-16">GitHub Analytics.</h2>
 
         <div className="bg-[rgba(15,15,15,0.7)] backdrop-blur-md border border-[rgba(212, 160, 23,0.15)] rounded-[24px] p-6 md:p-8 shadow-xl">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 mb-8">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full border border-gold/30 bg-gold/5 flex items-center justify-center text-gold">
-                <Github className="h-6 w-6" />
+          {isLoading ? (
+            <div className="space-y-8">
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+                <div className="flex items-center gap-4 w-full lg:w-auto">
+                  <div className="h-12 w-12 rounded-full border border-gold/30 bg-gold/5 flex items-center justify-center text-gold animate-pulse">
+                    <Github className="h-6 w-6" />
+                  </div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-5 w-48 bg-muted/20 rounded animate-pulse" />
+                    <div className="h-3.5 w-64 bg-muted/15 rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className="bg-card/40 border border-border/40 px-4 py-2.5 rounded-xl text-center min-w-[100px]"
+                    >
+                      <div className="h-3 w-16 bg-muted/20 rounded mx-auto mb-2 animate-pulse" />
+                      <div className="h-5 w-8 bg-gold/20 rounded mx-auto animate-pulse" />
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-foreground">
-                  @DhivyadharshiniGopalakrishnan
-                </h3>
-                <p className="text-xs text-gold">AI / ML Engineer &amp; Open Source Contributor</p>
-              </div>
-            </div>
-
-            {/* Quick stats grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
-              <div className="bg-card/40 border border-border/40 px-4 py-2.5 rounded-xl text-center">
-                <span className="text-xs text-muted-foreground block font-semibold">
-                  Total Commits
-                </span>
-                <span className="text-lg font-bold text-gold">1,420+</span>
-              </div>
-              <div className="bg-card/40 border border-border/40 px-4 py-2.5 rounded-xl text-center">
-                <span className="text-xs text-muted-foreground block font-semibold">
-                  PRs Merged
-                </span>
-                <span className="text-lg font-bold text-gold">86</span>
-              </div>
-              <div className="bg-card/40 border border-border/40 px-4 py-2.5 rounded-xl text-center">
-                <span className="text-xs text-muted-foreground block font-semibold">
-                  Repositories
-                </span>
-                <span className="text-lg font-bold text-gold">12</span>
-              </div>
-              <div className="bg-card/40 border border-border/40 px-4 py-2.5 rounded-xl text-center">
-                <span className="text-xs text-muted-foreground block font-semibold">
-                  Stars Gained
-                </span>
-                <span className="text-lg font-bold text-gold">48</span>
+              <div className="border-t border-border/40 pt-6">
+                <div className="h-3.5 w-48 bg-muted/20 rounded mb-4 animate-pulse" />
+                <div className="overflow-x-auto pb-4">
+                  <div className="flex flex-col flex-wrap h-[100px] gap-[3px] w-fit">
+                    {Array.from({ length: 245 }).map((_, idx) => (
+                      <div
+                        key={idx}
+                        className="h-[11px] w-[11px] rounded-[2px] border border-border/10 bg-muted/5 animate-pulse"
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <span className="h-12 w-12 rounded-full border border-gold/30 bg-gold/5 flex items-center justify-center text-gold mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6"
+                >
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </span>
+              <h4 className="text-sm font-bold text-foreground">GitHub Data Unavailable</h4>
+              <p className="text-xs text-muted-foreground mt-1 max-w-sm">{errorMsg}</p>
+              <button
+                onClick={refetchAll}
+                className="mt-4 px-5 py-2 border border-gold/30 rounded-xl text-xs font-semibold text-gold hover:bg-gold hover:text-black transition cursor-pointer"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-8 mb-8">
+                <div
+                  className="flex items-center gap-4"
+                  title={`GitHub Profile: @${profile?.login || GITHUB_USERNAME}\nBio: ${bioText}\nFollowers: ${followers} | Following: ${following}`}
+                >
+                  <div className="h-12 w-12 rounded-full border border-gold/30 bg-gold/5 flex items-center justify-center text-gold overflow-hidden shrink-0">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Profile Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Github className="h-6 w-6" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground">
+                      @{profile?.login || GITHUB_USERNAME}
+                    </h3>
+                    <p className="text-xs text-gold">{bioText}</p>
+                  </div>
+                </div>
 
-          {/* Simulated Grid Calendar */}
-          <div className="border-t border-border/40 pt-6">
-            <p className="text-xs text-muted-foreground mb-4 flex items-center gap-2">
-              <GitCommit className="h-4 w-4 text-gold" />
-              Contributions in the past year
-            </p>
-            <div className="overflow-x-auto pb-4">
-              <div className="flex flex-col flex-wrap h-[100px] gap-[3px] w-fit">
-                {squares.map((level, idx) => (
+                {/* Quick stats grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
                   <div
-                    key={idx}
-                    className={`h-[11px] w-[11px] rounded-[2px] border ${getGoldColor(level)} transition-colors duration-300 hover:scale-125`}
-                    title={`${level === 0 ? "No" : level * 2} contributions`}
-                  />
-                ))}
+                    className="bg-card/40 border border-border/40 px-4 py-2.5 rounded-xl text-center cursor-help"
+                    title={`Current Streak: ${streak.currentStreak} day(s)\nLongest Streak: ${streak.longestStreak} day(s)`}
+                  >
+                    <span className="text-xs text-muted-foreground block font-semibold">
+                      Total Commits
+                    </span>
+                    <span className="text-lg font-bold text-gold">{totalCommits}</span>
+                  </div>
+                  <div
+                    className="bg-card/40 border border-border/40 px-4 py-2.5 rounded-xl text-center cursor-help"
+                    title={`Recent Activity:\n${recentEvents.slice(0, 3).join("\n") || "No recent public events"}\n\nIssues Created: ${issuesCreated}`}
+                  >
+                    <span className="text-xs text-muted-foreground block font-semibold">
+                      PRs Merged
+                    </span>
+                    <span className="text-lg font-bold text-gold">{prsMerged}</span>
+                  </div>
+                  <div
+                    className="bg-card/40 border border-border/40 px-4 py-2.5 rounded-xl text-center cursor-help"
+                    title={`Top Languages: ${topLanguages.join(", ") || "None"}`}
+                  >
+                    <span className="text-xs text-muted-foreground block font-semibold">
+                      Repositories
+                    </span>
+                    <span className="text-lg font-bold text-gold">{totalRepos}</span>
+                  </div>
+                  <div
+                    className="bg-card/40 border border-border/40 px-4 py-2.5 rounded-xl text-center cursor-help"
+                    title={`Followers: ${followers}\nFollowing: ${following}`}
+                  >
+                    <span className="text-xs text-muted-foreground block font-semibold">
+                      Stars Gained
+                    </span>
+                    <span className="text-lg font-bold text-gold">{starsGained}</span>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            {/* Graph Legend */}
-            <div className="flex flex-col sm:flex-row items-center justify-between text-[10px] text-muted-foreground mt-2 gap-2">
-              <span>Learn more at github.com/DhivyadharshiniGopalakrishnan</span>
-              <div className="flex items-center gap-1">
-                <span>Less</span>
-                <div className="h-[9px] w-[9px] bg-muted/10 border border-border/10 rounded-[1px]" />
-                <div className="h-[9px] w-[9px] bg-[#35250a] border-[#553b10] rounded-[1px]" />
-                <div className="h-[9px] w-[9px] bg-[#6c4d14] border-[#92681c] rounded-[1px]" />
-                <div className="h-[9px] w-[9px] bg-[#a37620] border-[#c58f2a] rounded-[1px]" />
-                <div className="h-[9px] w-[9px] bg-[#d4a017] border-[#ecd365] rounded-[1px]" />
-                <span>More</span>
+              {/* Grid Calendar */}
+              <div className="border-t border-border/40 pt-6">
+                <p className="text-xs text-muted-foreground mb-4 flex items-center gap-2">
+                  <GitCommit className="h-4 w-4 text-gold" />
+                  Contributions in the past year
+                </p>
+                <div className="overflow-x-auto pb-4">
+                  <div className="flex flex-col flex-wrap h-[100px] gap-[3px] w-fit">
+                    {paddedSquares.map((day, idx) => (
+                      <div
+                        key={idx}
+                        className={`h-[11px] w-[11px] rounded-[2px] border ${getGoldColor(day.level)} transition-colors duration-300 hover:scale-125`}
+                        title={`${day.count} contribution${day.count === 1 ? "" : "s"} on ${new Date(day.date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Graph Legend */}
+                <div className="flex flex-col sm:flex-row items-center justify-between text-[10px] text-muted-foreground mt-2 gap-2">
+                  <span>Learn more at github.com/{profile?.login || GITHUB_USERNAME}</span>
+                  <div className="flex items-center gap-1">
+                    <span>Less</span>
+                    <div className="h-[9px] w-[9px] bg-muted/10 border border-border/10 rounded-[1px]" />
+                    <div className="h-[9px] w-[9px] bg-[#35250a] border-[#553b10] rounded-[1px]" />
+                    <div className="h-[9px] w-[9px] bg-[#6c4d14] border-[#92681c] rounded-[1px]" />
+                    <div className="h-[9px] w-[9px] bg-[#a37620] border-[#c58f2a] rounded-[1px]" />
+                    <div className="h-[9px] w-[9px] bg-[#d4a017] border-[#ecd365] rounded-[1px]" />
+                    <span>More</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
     </section>
@@ -1470,7 +2062,7 @@ function Contact() {
               <a
                 href="https://github.com/DhivyadharshiniGopalakrishnan"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="p-3 border border-[rgba(212, 160, 23,0.2)] rounded-xl bg-card/40 text-gold hover:border-gold hover:shadow-[0_0_10px_rgba(212, 160, 23,0.3)] transition"
                 aria-label="GitHub"
               >
@@ -1635,7 +2227,7 @@ function Footer() {
           <a
             href="https://github.com/DhivyadharshiniGopalakrishnan"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="hover:text-gold transition-colors duration-300"
           >
             GitHub
@@ -2092,22 +2684,15 @@ function MobileSkills() {
       </div>
 
       <div className="grid grid-cols-2 gap-2.5">
-        {techSkills.map((s) => {
-          const isHighlighted = activeFilter === "all" || s.category === activeFilter;
-          return (
-            <div
-              key={s.name}
-              className={`bg-[rgba(15,15,15,0.7)] border rounded-xl p-4 transition-all duration-300 relative ${
-                isHighlighted
-                  ? "border-[rgba(212, 160, 23,0.2)] opacity-100 scale-100"
-                  : "border-border/30 opacity-30 scale-95 pointer-events-none"
-              }`}
-            >
-              <p className="text-[8px] text-gold uppercase tracking-wider mb-1">{s.level}</p>
-              <h3 className="text-sm font-semibold text-foreground">{s.name}</h3>
-            </div>
-          );
-        })}
+        {filteredSkills.map((s) => (
+          <div
+            key={s.name}
+            className="bg-[rgba(15,15,15,0.7)] border border-[rgba(212, 160, 23,0.2)] rounded-xl p-4 transition-all duration-300 relative opacity-100 scale-100"
+          >
+            <p className="text-[8px] text-gold uppercase tracking-wider mb-1">{s.level}</p>
+            <h3 className="text-sm font-semibold text-foreground">{s.name}</h3>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -2260,6 +2845,179 @@ function MobileAchievements() {
 }
 
 function MobileGitHub() {
+  const profileQuery = useQuery({
+    queryKey: ["githubProfile", GITHUB_USERNAME],
+    queryFn: fetchGitHubProfile,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const reposQuery = useQuery({
+    queryKey: ["githubRepos", GITHUB_USERNAME],
+    queryFn: fetchGitHubRepos,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const prsQuery = useQuery({
+    queryKey: ["githubPRsCount", GITHUB_USERNAME],
+    queryFn: fetchGitHubPRsCount,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const issuesQuery = useQuery({
+    queryKey: ["githubIssuesCount", GITHUB_USERNAME],
+    queryFn: fetchGitHubIssuesCount,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const contributionsQuery = useQuery({
+    queryKey: ["githubContributions", GITHUB_USERNAME],
+    queryFn: fetchGitHubContributions,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const eventsQuery = useQuery({
+    queryKey: ["githubEvents", GITHUB_USERNAME],
+    queryFn: fetchGitHubEvents,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const refetchAll = () => {
+    profileQuery.refetch();
+    reposQuery.refetch();
+    prsQuery.refetch();
+    issuesQuery.refetch();
+    contributionsQuery.refetch();
+    eventsQuery.refetch();
+  };
+
+  if (
+    profileQuery.isLoading ||
+    reposQuery.isLoading ||
+    prsQuery.isLoading ||
+    issuesQuery.isLoading ||
+    contributionsQuery.isLoading
+  ) {
+    return (
+      <section className="space-y-6">
+        <div>
+          <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Analytics</p>
+          <h2 className="font-display text-3xl font-bold mt-1">GitHub Activity.</h2>
+        </div>
+        <div className="bg-[rgba(15,15,15,0.7)] border border-[rgba(212, 160, 23,0.15)] rounded-3xl p-5">
+          <div className="flex items-center gap-3 mb-5 animate-pulse">
+            <div className="h-10 w-10 rounded-full border border-gold/30 bg-gold/5 flex items-center justify-center text-gold">
+              <Github className="h-5 w-5" />
+            </div>
+            <div className="space-y-1.5 flex-1">
+              <div className="h-4 w-24 bg-muted/20 rounded" />
+              <div className="h-3 w-32 bg-muted/15 rounded" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center"
+              >
+                <div className="h-3 w-12 bg-muted/20 rounded mx-auto mb-1.5 animate-pulse" />
+                <div className="h-5 w-8 bg-gold/20 rounded mx-auto animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (
+    profileQuery.isError ||
+    reposQuery.isError ||
+    prsQuery.isError ||
+    issuesQuery.isError ||
+    contributionsQuery.isError
+  ) {
+    const errorMsg =
+      (profileQuery.error as Error)?.message ||
+      (reposQuery.error as Error)?.message ||
+      (prsQuery.error as Error)?.message ||
+      (issuesQuery.error as Error)?.message ||
+      (contributionsQuery.error as Error)?.message ||
+      "Failed to load mobile GitHub analytics.";
+
+    return (
+      <section className="space-y-6">
+        <div>
+          <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Analytics</p>
+          <h2 className="font-display text-3xl font-bold mt-1">GitHub Activity.</h2>
+        </div>
+        <div className="bg-[rgba(15,15,15,0.7)] border border-[rgba(212, 160, 23,0.15)] rounded-3xl p-5 text-center flex flex-col items-center justify-center py-8">
+          <span className="h-8 w-8 rounded-full border border-gold/30 bg-gold/5 flex items-center justify-center text-gold mb-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </span>
+          <h4 className="text-xs font-bold text-foreground">GitHub Data Unavailable</h4>
+          <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px]">{errorMsg}</p>
+          <button
+            onClick={refetchAll}
+            className="mt-3 px-4 py-1.5 border border-gold/30 rounded-xl text-[10px] font-bold text-gold hover:bg-gold hover:text-black transition cursor-pointer"
+          >
+            Retry
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  const profile = profileQuery.data;
+  const repos = reposQuery.data || [];
+  const contributions = contributionsQuery.data;
+  const events = eventsQuery.data || [];
+  const prsMerged = prsQuery.data || 0;
+  const issuesCreated = issuesQuery.data || 0;
+
+  const totalRepos = profile?.public_repos || 0;
+  const followers = profile?.followers || 0;
+  const following = profile?.following || 0;
+  const avatarUrl = profile?.avatar_url || "";
+  const bioText = profile?.bio || "AI / ML Engineer & Open Source Contributor";
+
+  const starsGained = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+
+  let totalCommits = 0;
+  if (contributions?.total) {
+    totalCommits = Object.values(contributions.total).reduce((sum, val) => sum + val, 0);
+  }
+  if (totalCommits === 0 && contributions?.contributions) {
+    totalCommits = contributions.contributions.reduce((sum, day) => sum + day.count, 0);
+  }
+
+  const streak = contributions?.contributions
+    ? calculateStreak(contributions.contributions)
+    : { currentStreak: 0, longestStreak: 0 };
+
+  const topLanguages = getTopLanguages(repos);
+  const recentEvents = events.map(formatGitHubEvent).filter(Boolean);
+
   return (
     <section className="space-y-6">
       <div>
@@ -2268,32 +3026,53 @@ function MobileGitHub() {
       </div>
 
       <div className="bg-[rgba(15,15,15,0.7)] border border-[rgba(212, 160, 23,0.15)] rounded-3xl p-5">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="h-10 w-10 rounded-full border border-gold/30 bg-gold/5 flex items-center justify-center text-gold">
-            <Github className="h-5 w-5" />
+        <div
+          className="flex items-center gap-3 mb-5"
+          title={`GitHub Profile: @${profile?.login || GITHUB_USERNAME}\nBio: ${bioText}\nFollowers: ${followers} | Following: ${following}`}
+        >
+          <div className="h-10 w-10 rounded-full border border-gold/30 bg-gold/5 flex items-center justify-center text-gold overflow-hidden shrink-0">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Profile Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <Github className="h-5 w-5" />
+            )}
           </div>
           <div>
-            <h3 className="text-sm font-bold text-foreground">@DhivyadharshiniG</h3>
-            <p className="text-[10px] text-gold">AI / ML Engineer &amp; Open Source Contributor</p>
+            <h3 className="text-sm font-bold text-foreground">
+              @{profile?.login || GITHUB_USERNAME}
+            </h3>
+            <p className="text-[10px] text-gold">{bioText}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center">
+          <div
+            className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center"
+            title={`Current Streak: ${streak.currentStreak} day(s)\nLongest Streak: ${streak.longestStreak} day(s)`}
+          >
             <span className="text-[9px] text-muted-foreground block font-bold">Commits</span>
-            <span className="text-sm font-bold text-gold">1,420+</span>
+            <span className="text-sm font-bold text-gold">{totalCommits}</span>
           </div>
-          <div className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center">
+          <div
+            className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center"
+            title={`Recent Activity:\n${recentEvents.slice(0, 3).join("\n") || "No recent public events"}\n\nIssues Created: ${issuesCreated}`}
+          >
             <span className="text-[9px] text-muted-foreground block font-bold">PRs Merged</span>
-            <span className="text-sm font-bold text-gold">86</span>
+            <span className="text-sm font-bold text-gold">{prsMerged}</span>
           </div>
-          <div className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center">
+          <div
+            className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center"
+            title={`Top Languages: ${topLanguages.join(", ") || "None"}`}
+          >
             <span className="text-[9px] text-muted-foreground block font-bold">Repos</span>
-            <span className="text-sm font-bold text-gold">12</span>
+            <span className="text-sm font-bold text-gold">{totalRepos}</span>
           </div>
-          <div className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center">
+          <div
+            className="bg-card/30 border border-border/30 px-3 py-2 rounded-xl text-center"
+            title={`Followers: ${followers}\nFollowing: ${following}`}
+          >
             <span className="text-[9px] text-muted-foreground block font-bold">Stars</span>
-            <span className="text-sm font-bold text-gold">48</span>
+            <span className="text-sm font-bold text-gold">{starsGained}</span>
           </div>
         </div>
       </div>
@@ -2422,7 +3201,7 @@ function MobileContact() {
             <a
               href="https://github.com/DhivyadharshiniGopalakrishnan"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="p-3 border border-[rgba(212, 160, 23,0.15)] rounded-2xl bg-card/20 text-gold flex-1 flex justify-center active:scale-95 transition-transform"
               aria-label="GitHub"
             >
@@ -2557,7 +3336,7 @@ function MobileFooter() {
         <a
           href="https://github.com/DhivyadharshiniGopalakrishnan"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="hover:text-gold transition"
         >
           GitHub
