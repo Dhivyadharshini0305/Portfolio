@@ -3,6 +3,10 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import emailjs from "@emailjs/browser";
 import { useIsMobile } from "@/hooks/use-mobile";
+import DhivyAIChatbot from "@/components/DhivyAIChatbot";
+import { CaseStudies, MobileCaseStudies } from "@/components/CaseStudies";
+import { getMappedProject } from "@/lib/github-sync";
+import { ProjectImage } from "@/components/ProjectImage";
 import {
   ArrowUpRight,
   Mail,
@@ -92,52 +96,7 @@ function useCountUpDecimal(target: number, duration: number = 1500) {
   return count.toFixed(2);
 }
 
-const projects = [
-  {
-    id: "rag",
-    year: "2025",
-    title: "RAG-Based Business Intelligence Assistant",
-    client: "Independent Project",
-    role: "Lead GenAI Developer",
-    img: projRag,
-    tags: ["Python", "Flask", "Ollama", "RAG"],
-    desc: "Flask-based assistant using local LLMs (Ollama) to answer analytical business queries with structured data retrieval and prompt engineering.",
-    problemStatement:
-      "Non-technical stakeholders require fast access to database insights without writing complex SQL queries manually or relying on custom data analyst queues.",
-    architecture: [
-      "Natural Language query is submitted via the custom Flask UI.",
-      "LangChain parser structures the query and identifies relevant database schemas.",
-      "Prompt Engine injects schema metadata into Ollama (Local Llama 3 model).",
-      "Ollama generates a validated SQL query executed directly against SQLite.",
-      "The result set is aggregated, reformatted into natural language, and returned.",
-    ],
-    results:
-      "Retrieval-Augmented Generation, Business Query Answering, Real-time Insights, Structured Data Retrieval.",
-    link: "https://github.com/DhivyadharshiniGopalakrishnan/rag-business-intelligence-assistant",
-  },
-  {
-    id: "agents",
-    year: "2025",
-    title: "Multi-Agent AI Social Media Manager",
-    client: "Cube AI Solutions",
-    role: "AI / Agentic AI Intern",
-    img: projAgents,
-    tags: ["Python", "Gemini API", "Telegram Bot"],
-    desc: "A four-agent system — Planner, Writer, Hashtag, Scheduler — that automates 30-day content planning through interactive Telegram workflows.",
-    problemStatement:
-      "Social media marketing requires repetitive planner templates, copywriting iterations, and SEO tag parsing, creating bottlenecks in regular scheduling workflows.",
-    architecture: [
-      "Telegram Bot triggers the multi-agent workflow with client branding rules.",
-      "Planner Agent designs a structured 30-day campaign calendar and content pillars.",
-      "Writer Agent drafts post copy, aligning tone and style to Planner frameworks.",
-      "Hashtag & SEO Agent appends engaging trending keywords using semantic parsing.",
-      "Scheduler Agent pushes ready-to-publish content to active platform hooks.",
-    ],
-    results:
-      "Planner Agent, Writer Agent, Hashtag Agent, Scheduler Agent, Automated Content Planning.",
-    link: "https://github.com/DhivyadharshiniGopalakrishnan/multi-agent-ai-social-media-manager",
-  },
-];
+// Projects are synchronized and loaded dynamically from the GitHub API
 
 const techSkills = [
   // Programming
@@ -265,7 +224,12 @@ const timelineEvents = [
 
 function Portfolio() {
   const isMobile = useIsMobile();
-  return isMobile ? <MobileAppLayout /> : <DesktopLayout />;
+  return (
+    <>
+      {isMobile ? <MobileAppLayout /> : <DesktopLayout />}
+      <DhivyAIChatbot />
+    </>
+  );
 }
 
 function DesktopLayout() {
@@ -279,6 +243,7 @@ function DesktopLayout() {
       <AIDomains />
       <ArchitectureShowcase />
       <FeaturedProjects />
+      <CaseStudies />
       <TechStackGrid />
       <ExperienceTimeline />
       <Certificates />
@@ -913,10 +878,75 @@ function ArchitectureShowcase() {
 
 function FeaturedProjects() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  const reposQuery = useQuery({
+    queryKey: ["githubRepos", GITHUB_USERNAME],
+    queryFn: fetchGitHubRepos,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
 
   const toggleExpand = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
+
+  if (reposQuery.isLoading) {
+    return (
+      <section id="work" className="py-24 border-t border-border bg-background">
+        <div className="mx-auto max-w-7xl px-6 md:px-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+            <div>
+              <p className="text-xs tracking-[0.3em] uppercase text-gold mb-4">Selected Work</p>
+              <h2 className="font-display text-5xl md:text-7xl">Things I&apos;ve built.</h2>
+            </div>
+          </div>
+          <div className="space-y-10">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="bg-[rgba(15,15,15,0.7)] border border-border/10 rounded-[24px] h-[300px] animate-pulse"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (reposQuery.isError) {
+    return null;
+  }
+
+  const repos = reposQuery.data || [];
+  const list = repos.map(getMappedProject).sort((a, b) => {
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return 0;
+  });
+
+  const displayList = list.filter((p) => {
+    if (activeCategory === "all") return true;
+    if (activeCategory === "ml") return p.category === "ml";
+    if (activeCategory === "genai") return p.category === "genai";
+    if (activeCategory === "fullstack") return p.category === "fullstack";
+    if (activeCategory === "tools") return p.category === "tools";
+    if (activeCategory === "academic") return p.category === "academic";
+    if (activeCategory === "python") {
+      return p.category === "python" || p.tech.some((t) => t.toLowerCase() === "python");
+    }
+    return false;
+  });
+
+  const categories = [
+    { id: "all", label: "All Projects" },
+    { id: "ml", label: "AI & Machine Learning" },
+    { id: "genai", label: "GenAI & Agents" },
+    { id: "fullstack", label: "Full Stack Development" },
+    { id: "python", label: "Python Projects" },
+    { id: "tools", label: "Tools & Utilities" },
+    { id: "academic", label: "Academic Projects" },
+  ];
 
   return (
     <section id="work" className="py-24 border-t border-border bg-background">
@@ -932,12 +962,30 @@ function FeaturedProjects() {
           </p>
         </div>
 
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 mb-10">
+          {categories.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setActiveCategory(f.id)}
+              className={`px-4 py-2 rounded-full text-xs font-medium border transition-all duration-300 cursor-pointer ${
+                activeCategory === f.id
+                  ? "bg-gold text-primary-foreground border-gold shadow-[0_0_15px_rgba(212, 160, 23,0.3)]"
+                  : "bg-card/40 text-muted-foreground border-border hover:border-gold/40 hover:text-foreground"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         <div className="space-y-10">
-          {projects.map((p) => {
+          {displayList.map((p) => {
             const isExpanded = expandedId === p.id;
+            const yearStr = p.timeline.split(" – ").pop() || "2025";
             return (
               <article
-                key={p.title}
+                key={p.id}
                 className={`bg-[rgba(15,15,15,0.7)] backdrop-blur-md border rounded-[24px] overflow-hidden transition-all duration-500 ${
                   isExpanded
                     ? "border-gold shadow-[0_10px_40px_rgba(212, 160, 23,0.15)]"
@@ -947,9 +995,11 @@ function FeaturedProjects() {
                 {/* Header Grid */}
                 <div className="grid lg:grid-cols-12 gap-6 p-6 lg:p-8 items-center">
                   <div className="lg:col-span-5 relative aspect-[16/10] overflow-hidden rounded-xl">
-                    <img
-                      src={p.img}
+                    <ProjectImage
+                      src={p.banner}
                       alt={p.title}
+                      category={p.category}
+                      title={p.title}
                       className="h-full w-full object-cover transition-transform duration-[1200ms] hover:scale-105"
                       loading="lazy"
                     />
@@ -958,20 +1008,28 @@ function FeaturedProjects() {
                   <div className="lg:col-span-7 flex flex-col justify-between h-full">
                     <div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                        <span className="text-gold font-semibold">{p.year}</span>
+                        <span className="text-gold font-semibold">{yearStr}</span>
                         <span className="h-px w-8 bg-border" />
-                        <span>{p.client}</span>
+                        <span>GitHub Repository</span>
+                        {p.featured && (
+                          <>
+                            <span className="h-px w-8 bg-border" />
+                            <span className="bg-gold/10 border border-gold/30 px-2 py-0.5 rounded text-gold font-bold text-[9px] uppercase tracking-widest flex items-center gap-1">
+                              ★ Featured
+                            </span>
+                          </>
+                        )}
                       </div>
                       <h3 className="font-display text-3xl md:text-4xl mb-3 leading-tight text-foreground">
                         {p.title}
                       </h3>
-                      <p className="text-sm text-gold font-medium mb-4">{p.role}</p>
+                      <p className="text-sm text-gold font-medium mb-4">{p.subtitle}</p>
                       <p className="text-sm text-muted-foreground leading-relaxed mb-6">{p.desc}</p>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-4 mt-auto">
                       <div className="flex flex-wrap gap-2">
-                        {p.tags.slice(0, 3).map((t) => (
+                        {p.tech.slice(0, 3).map((t) => (
                           <span
                             key={t}
                             className="text-[10px] border border-gold/20 bg-gold/5 rounded-full px-3 py-1 text-muted-foreground"
@@ -979,9 +1037,9 @@ function FeaturedProjects() {
                             {t}
                           </span>
                         ))}
-                        {p.tags.length > 3 && (
+                        {p.tech.length > 3 && (
                           <span className="text-[10px] border border-border rounded-full px-2 py-1 text-muted-foreground">
-                            +{p.tags.length - 3} more
+                            +{p.tech.length - 3} more
                           </span>
                         )}
                       </div>
@@ -1014,9 +1072,7 @@ function FeaturedProjects() {
                       <h4 className="text-xs uppercase tracking-widest text-gold font-bold mb-2">
                         Problem Statement
                       </h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {p.problemStatement}
-                      </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{p.problem}</p>
                     </div>
 
                     <div>
@@ -1024,7 +1080,7 @@ function FeaturedProjects() {
                         Quantifiable Results
                       </h4>
                       <p className="text-sm text-muted-foreground leading-relaxed bg-gold/5 border border-gold/10 p-4 rounded-xl font-medium text-foreground">
-                        {p.results}
+                        {p.impact}
                       </p>
                     </div>
                   </div>
@@ -1035,7 +1091,7 @@ function FeaturedProjects() {
                         System Architecture
                       </h4>
                       <div className="relative pl-6 border-l border-gold/20 space-y-3">
-                        {p.architecture.map((step, idx) => (
+                        {p.workflow.map((step, idx) => (
                           <div
                             key={idx}
                             className="relative text-xs text-muted-foreground leading-relaxed"
@@ -1051,9 +1107,9 @@ function FeaturedProjects() {
 
                     <div className="pt-4 flex flex-wrap items-center gap-4">
                       <a
-                        href={p.link}
+                        href={p.github}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
                       >
                         Source Code <ArrowUpRight className="h-4 w-4" />
@@ -1291,8 +1347,13 @@ interface GitHubProfile {
 }
 
 interface GitHubRepo {
+  name: string;
+  description: string | null;
+  html_url: string;
   stargazers_count: number;
   language: string | null;
+  updated_at: string;
+  topics?: string[];
 }
 
 interface ContributionDay {
@@ -2298,6 +2359,7 @@ function MobileAppLayout() {
         <MobileAbout />
         <MobileDomains />
         <MobileProjects />
+        <MobileCaseStudies />
         <MobileSkills />
         <MobileTimeline />
         <MobileCertificates />
@@ -2530,9 +2592,73 @@ function MobileDomains() {
 
 function MobileProjects() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  const reposQuery = useQuery({
+    queryKey: ["githubRepos", GITHUB_USERNAME],
+    queryFn: fetchGitHubRepos,
+    retry: 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
   const toggleExpand = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
+
+  if (reposQuery.isLoading) {
+    return (
+      <section id="mobile-work" className="scroll-mt-16 space-y-6">
+        <div>
+          <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">
+            Selected Work
+          </p>
+          <h2 className="font-display text-3xl font-bold mt-1">Things I've Built.</h2>
+        </div>
+        <div className="space-y-6">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              className="bg-[rgba(15,15,15,0.7)] border border-border/10 rounded-3xl h-[200px] animate-pulse"
+            />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (reposQuery.isError) {
+    return null;
+  }
+
+  const repos = reposQuery.data || [];
+  const list = repos.map(getMappedProject).sort((a, b) => {
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return 0;
+  });
+
+  const displayList = list.filter((p) => {
+    if (activeCategory === "all") return true;
+    if (activeCategory === "ml") return p.category === "ml";
+    if (activeCategory === "genai") return p.category === "genai";
+    if (activeCategory === "fullstack") return p.category === "fullstack";
+    if (activeCategory === "tools") return p.category === "tools";
+    if (activeCategory === "academic") return p.category === "academic";
+    if (activeCategory === "python") {
+      return p.category === "python" || p.tech.some((t) => t.toLowerCase() === "python");
+    }
+    return false;
+  });
+
+  const categories = [
+    { id: "all", label: "All" },
+    { id: "ml", label: "AI & ML" },
+    { id: "genai", label: "GenAI" },
+    { id: "fullstack", label: "Full Stack" },
+    { id: "python", label: "Python" },
+    { id: "tools", label: "Tools" },
+    { id: "academic", label: "Academic" },
+  ];
 
   return (
     <section id="mobile-work" className="scroll-mt-16 space-y-6">
@@ -2540,9 +2666,27 @@ function MobileProjects() {
         <p className="text-[10px] tracking-[0.2em] uppercase text-gold font-bold">Selected Work</p>
         <h2 className="font-display text-3xl font-bold mt-1">Things I've Built.</h2>
       </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {categories.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setActiveCategory(f.id)}
+            className={`px-4 py-1.5 rounded-full text-[10px] font-semibold border shrink-0 cursor-pointer transition ${
+              activeCategory === f.id
+                ? "bg-gold text-primary-foreground border-gold shadow-[0_0_10px_rgba(212, 160, 23,0.3)]"
+                : "bg-card/40 text-muted-foreground border-border"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-6">
-        {projects.map((p) => {
+        {displayList.map((p) => {
           const isExpanded = expandedId === p.id;
+          const yearStr = p.timeline.split(" – ").pop() || "2025";
           return (
             <article
               key={p.id}
@@ -2553,22 +2697,33 @@ function MobileProjects() {
               }`}
             >
               <div className="relative aspect-[16/10] overflow-hidden">
-                <img src={p.img} alt={p.title} className="w-full h-full object-cover" />
+                <ProjectImage
+                  src={p.banner}
+                  alt={p.title}
+                  category={p.category}
+                  title={p.title}
+                  className="w-full h-full object-cover"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-[rgba(10,10,10,0.95)] via-transparent to-transparent" />
                 <div className="absolute top-4 left-4 bg-[rgba(15,15,15,0.85)] border border-[rgba(212, 160, 23,0.3)] px-3 py-1 rounded-full text-[9px] uppercase font-bold text-gold">
-                  {p.year}
+                  {yearStr}
                 </div>
+                {p.featured && (
+                  <div className="absolute top-4 right-4 bg-gold/90 backdrop-blur-md border border-gold px-2.5 py-1 rounded-full text-[8px] uppercase font-extrabold text-primary-foreground shadow-[0_0_8px_rgba(212,160,23,0.8)]">
+                    ★ Featured
+                  </div>
+                )}
               </div>
 
               <div className="p-5">
                 <p className="text-[10px] text-gold font-semibold uppercase tracking-wider mb-1">
-                  {p.role}
+                  {p.subtitle}
                 </p>
                 <h3 className="text-xl font-bold text-foreground mb-3 leading-snug">{p.title}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-4">{p.desc}</p>
 
                 <div className="flex flex-wrap gap-1.5 mb-5">
-                  {p.tags.map((tag) => (
+                  {p.tech.map((tag) => (
                     <span
                       key={tag}
                       className="text-[9px] border border-gold/15 bg-gold/5 rounded-full px-2.5 py-0.5 text-muted-foreground"
@@ -2580,12 +2735,12 @@ function MobileProjects() {
 
                 <div className="flex items-center justify-between border-t border-border/40 pt-4">
                   <a
-                    href={p.link}
+                    href={p.github}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-gold tracking-wider"
                   >
-                    Source Code <ArrowUpRight className="h-3 w-3" />
+                    Source Code <ArrowUpRight className="h-3.5 w-3.5" />
                   </a>
 
                   <button
@@ -2608,16 +2763,14 @@ function MobileProjects() {
                     <h4 className="text-[9px] uppercase tracking-wider text-gold font-bold mb-1">
                       Problem Statement
                     </h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {p.problemStatement}
-                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{p.problem}</p>
                   </div>
                   <div>
                     <h4 className="text-[9px] uppercase tracking-wider text-gold font-bold mb-1">
                       System Architecture
                     </h4>
                     <div className="pl-4 border-l border-gold/20 space-y-2 mt-2">
-                      {p.architecture.map((step, idx) => (
+                      {p.workflow.map((step, idx) => (
                         <div
                           key={idx}
                           className="relative text-xs text-muted-foreground leading-relaxed"
@@ -2635,7 +2788,7 @@ function MobileProjects() {
                       Results
                     </h4>
                     <p className="text-xs text-foreground bg-gold/5 border border-gold/15 p-3 rounded-xl font-medium">
-                      {p.results}
+                      {p.impact}
                     </p>
                   </div>
                 </div>
